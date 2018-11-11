@@ -76,7 +76,7 @@ class BaseBot:
             "losses", {"train": train_loss_avg}, self.step)
 
     def snapshot(self):
-        _, loss = self.predict(self.val_loader, is_test=False)
+        loss = self.eval(self.val_loader)
         loss_str = self.loss_format % loss
         self.logger.info("Snapshot loss %s", loss_str)
         self.logger.tb_scalars(
@@ -91,10 +91,18 @@ class BaseBot:
         assert Path(target_path).exists()
         return loss
 
+    @staticmethod
+    def extract_prediction(output):
+        return output[:, 0]
+
+    @staticmethod
+    def transform_prediction(prediction):
+        return prediction
+
     def train(
             self, n_steps, *, log_interval=50,
             early_stopping_cnt=0, min_improv=1e-4,
-            scheduler=None, snapshot_interval=2500, ):
+            scheduler=None, snapshot_interval=2500):
         self.train_losses = deque(maxlen=self.avg_window)
         self.train_weights = deque(maxlen=self.avg_window)
         if self.val_loader is not None:
@@ -135,6 +143,25 @@ class BaseBot:
         except KeyboardInterrupt:
             pass
 
+    def eval(self, loader):
+        self.model.eval()
+        losses, weights = [], []
+        with torch.set_grad_enabled(False):
+            for *input_tensors, y in loader:
+                input_tensors = [x.to(self.device) for x in input_tensors]
+                output = self.model(*input_tensors)
+                batch_loss = self.criterion(
+                    self.extract_prediction(output), y.to(self.device))
+                losses.append(batch_loss.data.cpu().numpy())
+                weights.append(y.size(self.batch_idx))
+        loss = np.average(losses, weights=weights)
+        return loss
+
+    def predict_batch(self, input_tensors):
+        self.model.eval()
+        tmp = self.model(*input_tensors)
+        return self.extract_prediction(tmp)
+
     def predict_avg(self, loader, k=8, *, is_test=False):
         assert len(self.best_performers) >= k
         preds = []
@@ -147,28 +174,18 @@ class BaseBot:
             target = heapq.heappop(best_performers)[1]
             self.logger.info("Loading %s", format(target))
             self.model.load_state_dict(torch.load(target))
-            preds.append(self.predict(
-                loader, is_test=is_test)[0].unsqueeze(0))
+            preds.append(self.predict(loader).unsqueeze(0))
         return torch.cat(preds, dim=0).mean(dim=0)
 
-    def predict(self, loader, *, is_test=False):
+    def predict(self, loader):
         self.model.eval()
-        global_y = []
         outputs = []
         with torch.set_grad_enabled(False):
-            for *input_tensors, y in loader:
+            for *input_tensors, _ in loader:
                 input_tensors = [x.to(self.device) for x in input_tensors]
-                global_y.append(y.to(self.device))
-                tmp = self.model(*input_tensors)
-                outputs.append(tmp.data)
+                outputs.append(self.predict_batch(input_tensors))
             res = torch.cat(outputs, dim=0)
-        if is_test:
-            return (res.data,)
-        global_y = torch.cat(global_y, dim=0)
-        loss = self.criterion(
-            global_y, res[:, 0]
-        )
-        return res.data, loss.cpu().data.numpy()
+        return res.data
 
     def remove_checkpoints(self, keep=0):
         for checkpoint in np.unique([x[1] for x in self.best_performers[keep:]]):
