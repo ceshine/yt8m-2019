@@ -1,5 +1,4 @@
 import os
-import heapq
 import random
 import logging
 from pathlib import Path
@@ -84,8 +83,7 @@ class BaseBot:
         target_path = (
             self.checkpoint_dir /
             "snapshot_{}_{}.pth".format(self.name, loss_str))
-        heapq.heappush(
-            self.best_performers, (loss, target_path))
+        self.best_performers.append((loss, target_path, self.step))
         self.logger.info("Saving checkpoint %s...", target_path)
         torch.save(self.model.state_dict(), target_path)
         assert Path(target_path).exists()
@@ -123,8 +121,7 @@ class BaseBot:
                     input_tensors = [x.to(self.device) for x in input_tensors]
                     self.train_one_step(input_tensors, target.to(self.device))
                     self.step += 1
-                    if (self.step % log_interval == 0 or
-                            self.step % snapshot_interval == 0):
+                    if self.step % log_interval == 0:
                         self.log_progress()
                     if self.step % snapshot_interval == 0:
                         loss = self.snapshot()
@@ -142,6 +139,7 @@ class BaseBot:
                         break
         except KeyboardInterrupt:
             pass
+        self.best_performers = sorted(self.best_performers, key=lambda x: x[0])
 
     def eval(self, loader):
         self.model.eval()
@@ -167,11 +165,9 @@ class BaseBot:
         preds = []
         self.logger.info("Predicting %s...", (
             "test" if is_test else "validation"))
-        # Make a copy of the list
-        best_performers = list(self.best_performers)
         # Iterating through checkpoints
-        for _ in range(k):
-            target = heapq.heappop(best_performers)[1]
+        for i in range(k):
+            target = self.best_performers[i][1]
             self.logger.info("Loading %s", format(target))
             self.model.load_state_dict(torch.load(target))
             preds.append(self.predict(loader).unsqueeze(0))
