@@ -51,15 +51,15 @@ class BaseBot:
         self.criterion = torch.nn.MSELoss()
         self.loss_format = "%.8f"
 
-    def train_one_step(self, input_tensors, y):
+    def train_one_step(self, input_tensors, target):
         self.model.train()
         assert self.model.training
         self.optimizer.zero_grad()
         output = self.model(*input_tensors)
-        batch_loss = self.criterion(output[:, 0], y)
+        batch_loss = self.criterion(self.extract_prediction(output), target)
         batch_loss.backward()
         self.train_losses.append(batch_loss.data.cpu().numpy())
-        self.train_weights.append(y.size(self.batch_idx))
+        self.train_weights.append(target.size(self.batch_idx))
         if self.clip_grad > 0:
             clip_grad_norm_(self.model.parameters(), self.clip_grad)
         self.optimizer.step()
@@ -119,9 +119,9 @@ class BaseBot:
                 epoch += 1
                 self.logger.info(
                     "=" * 20 + "Epoch %d" + "=" * 20, epoch)
-                for *input_tensors, y in self.train_loader:
+                for *input_tensors, target in self.train_loader:
                     input_tensors = [x.to(self.device) for x in input_tensors]
-                    self.train_one_step(input_tensors, y.to(self.device))
+                    self.train_one_step(input_tensors, target.to(self.device))
                     self.step += 1
                     if (self.step % log_interval == 0 or
                             self.step % snapshot_interval == 0):
