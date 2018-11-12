@@ -169,7 +169,7 @@ class BaseBot:
         for i in range(k):
             target = self.best_performers[i][1]
             self.logger.info("Loading %s", format(target))
-            self.model.load_state_dict(torch.load(target))
+            self.load_model(target)
             preds.append(self.predict(loader).unsqueeze(0))
         return torch.cat(preds, dim=0).mean(dim=0)
 
@@ -187,3 +187,6 @@ class BaseBot:
         for checkpoint in np.unique([x[1] for x in self.best_performers[keep:]]):
             Path(checkpoint).unlink()
         self.best_performers = self.best_performers[:keep]
+
+    def load_model(self, target_path):
+        self.model.load_state_dict(torch.load(target_path))
