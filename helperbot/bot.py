@@ -68,7 +68,7 @@ class BaseBot:
             self.train_losses, weights=self.train_weights)
         self.logger.info(
             "Step %s: train %.6f lr: %.3e",
-            self.step, train_loss_avg, self.optimizer.param_groups[0]['lr'])
+            self.step, train_loss_avg, self.optimizer.param_groups[-1]['lr'])
         self.logger.tb_scalars(
             "lr", self.optimizer.param_groups[0]['lr'], self.step)
         self.logger.tb_scalars(
