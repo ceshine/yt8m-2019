@@ -50,6 +50,16 @@ class BaseBot:
         self.criterion = torch.nn.MSELoss()
         self.loss_format = "%.8f"
 
+        self.count_model_parameters()
+
+    def count_model_parameters(self):
+        self.logger.info(
+            "# of paramters: {:,d}".format(
+                np.sum(p.numel() for p in self.model.parameters())))
+        self.logger.info(
+            "# of trainable paramters: {:,d}".format(
+                np.sum(p.numel() for p in self.model.parameters() if p.requires_grad)))
+
     def train_one_step(self, input_tensors, target):
         self.model.train()
         assert self.model.training
@@ -91,6 +101,7 @@ class BaseBot:
 
     @staticmethod
     def extract_prediction(output):
+        """Assumes single output"""
         return output[:, 0]
 
     @staticmethod
