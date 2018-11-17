@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
     name='PyTorchHelperBot',
-    version='0.0.1',
+    version='0.0.2',
     packages=['helperbot', ],
     classifiers=[  # Optional
         # How mature is this project? Common values are
