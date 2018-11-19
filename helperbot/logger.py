@@ -2,8 +2,6 @@ from datetime import datetime
 import logging
 from pathlib import Path
 
-from tensorboardX import SummaryWriter
-
 
 class Logger:
     def __init__(self, model_name, log_dir, level=logging.INFO, use_tensorboard=False, echo=False):
@@ -31,6 +29,7 @@ class Logger:
         self.logger.propagate = False
         self.tbwriter = None
         if use_tensorboard:
+            from tensorboardX import SummaryWriter
             # Tensorboard
             self.tbwriter = SummaryWriter(
                 Path(log_dir) / "summaries" /
