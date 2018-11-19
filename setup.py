@@ -4,6 +4,9 @@ setup(
     name='PyTorchHelperBot',
     version='0.0.2',
     packages=['helperbot', ],
+    install_requires=[
+        'torch>=0.4.1'
+    ],
     classifiers=[  # Optional
         # How mature is this project? Common values are
         #   3 - Alpha
