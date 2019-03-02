@@ -7,6 +7,7 @@ from collections import deque
 import numpy as np
 import torch
 from torch.nn.utils.clip_grad import clip_grad_norm_
+from tqdm import tqdm
 
 from .logger import Logger
 
@@ -156,13 +157,13 @@ class BaseBot:
         self.model.eval()
         losses, weights = [], []
         with torch.set_grad_enabled(False):
-            for *input_tensors, y in loader:
+            for *input_tensors, y_local in tqdm(loader):
                 input_tensors = [x.to(self.device) for x in input_tensors]
                 output = self.model(*input_tensors)
                 batch_loss = self.criterion(
-                    self.extract_prediction(output), y.to(self.device))
+                    self.extract_prediction(output), y_local.to(self.device))
                 losses.append(batch_loss.data.cpu().numpy())
-                weights.append(y.size(self.batch_idx))
+                weights.append(y_local.size(self.batch_idx))
         loss = np.average(losses, weights=weights)
         return loss
 
@@ -171,11 +172,9 @@ class BaseBot:
         tmp = self.model(*input_tensors)
         return self.extract_prediction(tmp)
 
-    def predict_avg(self, loader, k=8, *, is_test=False):
+    def predict_avg(self, loader, k=8):
         assert len(self.best_performers) >= k
         preds = []
-        self.logger.info("Predicting %s...", (
-            "test" if is_test else "validation"))
         # Iterating through checkpoints
         for i in range(k):
             target = self.best_performers[i][1]
@@ -184,15 +183,19 @@ class BaseBot:
             preds.append(self.predict(loader).unsqueeze(0))
         return torch.cat(preds, dim=0).mean(dim=0)
 
-    def predict(self, loader):
+    def predict(self, loader, *, return_y=False):
         self.model.eval()
-        outputs = []
+        outputs, y_global = [], []
         with torch.set_grad_enabled(False):
-            for *input_tensors, _ in loader:
+            for *input_tensors, y_local in tqdm(loader):
                 input_tensors = [x.to(self.device) for x in input_tensors]
-                outputs.append(self.predict_batch(input_tensors))
-            res = torch.cat(outputs, dim=0)
-        return res.data
+                outputs.append(self.predict_batch(input_tensors).cpu())
+                y_global.append(y_local.cpu())
+            outputs = torch.cat(outputs, dim=0)
+            y_global = torch.cat(y_global, dim=0)
+        if return_y:
+            return outputs, y_global
+        return outputs
 
     def remove_checkpoints(self, keep=0):
         for checkpoint in np.unique([x[1] for x in self.best_performers[keep:]]):
