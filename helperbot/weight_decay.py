@@ -10,6 +10,8 @@ class WeightDecayOptimizerWrapper(Optimizer):
     def step(self, closure=None) -> None:
         for group in self.optimizer.param_groups:
             for param in group['params']:
+                if param.grad is None:
+                    continue
                 param.data = param.data.add(
                     -self.weight_decay * group['lr'], param.data)
         self.optimizer.step()
