@@ -8,7 +8,7 @@ class BaseLRScheduler(_LRScheduler):
         if not isinstance(optimizer, Optimizer):
             flag = False
             try:
-                from apex.optimizers import FP16_Optimizer
+                from apex.fp16_utils.fp16_optimizer import FP16_Optimizer
                 if isinstance(optimizer, FP16_Optimizer):
                     flag = True
             except ModuleNotFoundError:
