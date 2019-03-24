@@ -11,6 +11,14 @@ from tqdm import tqdm
 
 from .logger import Logger
 
+try:
+    from apex import amp
+    from apex.optimizers import FP16_Optimizer
+    APEX_AVAILABLE = True
+except ModuleNotFoundError:
+    APEX_AVAILABLE = False
+
+
 AVERAGING_WINDOW = 300
 SEED = int(os.environ.get("SEED", 9293))
 
@@ -67,11 +75,22 @@ class BaseBot:
         self.optimizer.zero_grad()
         output = self.model(*input_tensors)
         batch_loss = self.criterion(self.extract_prediction(output), target)
-        batch_loss.backward()
+        flag_traditional_backward = True
+        if APEX_AVAILABLE:
+            if isinstance(self.optimizer, FP16_Optimizer):
+                with amp.scale_loss(batch_loss, self.optimizer) as scaled_loss:
+                    scaled_loss.backward()
+                flag_traditional_backward = False
+        if flag_traditional_backward:
+            batch_loss.backward()
         self.train_losses.append(batch_loss.data.cpu().numpy())
         self.train_weights.append(target.size(self.batch_idx))
         if self.clip_grad > 0:
-            clip_grad_norm_(self.model.parameters(), self.clip_grad)
+            if flag_traditional_backward:
+                clip_grad_norm_(self.model.parameters(), self.clip_grad)
+            else:
+                clip_grad_norm_(amp.master_params(
+                    self.optimizer), self.clip_grad)
         self.optimizer.step()
 
     def log_progress(self):
