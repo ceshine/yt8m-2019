@@ -6,6 +6,7 @@ class WeightDecayOptimizerWrapper(Optimizer):
         assert weight_decay > 0
         self.optimizer = optimizer
         self.weight_decay = weight_decay
+        self.state = self.optimizer.state
 
     def step(self, closure=None) -> None:
         for group in self.optimizer.param_groups:
@@ -36,6 +37,7 @@ class WeightDecayOptimizerWrapper(Optimizer):
 
     def __setstate__(self, state):
         self.optimizer.__setstate__(state)
+        self.state = self.optimizer.state
 
     @property
     def param_groups(self):
