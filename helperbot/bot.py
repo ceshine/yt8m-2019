@@ -114,6 +114,7 @@ class BaseBot:
             self.checkpoint_dir /
             "snapshot_{}_{}.pth".format(self.name, loss_str))
         self.best_performers.append((loss, target_path, self.step))
+        self.best_performers = sorted(self.best_performers, key=lambda x: x[0])
         self.logger.info("Saving checkpoint %s...", target_path)
         torch.save(self.model.state_dict(), target_path)
         assert Path(target_path).exists()
@@ -131,7 +132,7 @@ class BaseBot:
     def train(
             self, n_steps, *, log_interval=50,
             early_stopping_cnt=0, min_improv=1e-4,
-            scheduler=None, snapshot_interval=2500):
+            scheduler=None, snapshot_interval=2500, keep_n_snapshots=-1):
         self.train_losses = deque(maxlen=self.avg_window)
         self.train_weights = deque(maxlen=self.avg_window)
         if self.val_loader is not None:
@@ -162,6 +163,8 @@ class BaseBot:
                             wo_improvement = 0
                         else:
                             wo_improvement += 1
+                        if keep_n_snapshots > 0:
+                            self.remove_checkpoints(keep=keep_n_snapshots)
                     if scheduler:
                         scheduler.step()
                     if early_stopping_cnt and wo_improvement > early_stopping_cnt:
@@ -170,7 +173,6 @@ class BaseBot:
                         break
         except KeyboardInterrupt:
             pass
-        self.best_performers = sorted(self.best_performers, key=lambda x: x[0])
 
     def eval(self, loader):
         self.model.eval()
