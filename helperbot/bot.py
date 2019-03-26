@@ -3,6 +3,7 @@ import random
 import logging
 from pathlib import Path
 from collections import deque
+from typing import List, Tuple
 
 import numpy as np
 import torch
@@ -13,7 +14,6 @@ from .logger import Logger
 
 try:
     from apex import amp
-    from apex.optimizers import FP16_Optimizer
     APEX_AVAILABLE = True
 except ModuleNotFoundError:
     APEX_AVAILABLE = False
@@ -37,7 +37,9 @@ class BaseBot:
             self, model, train_loader, val_loader, *, optimizer, clip_grad=0,
             avg_window=AVERAGING_WINDOW, log_dir="./data/cache/logs/", log_level=logging.INFO,
             checkpoint_dir="./data/cache/model_cache/", batch_idx=0, echo=False,
-            device="cuda:0", use_tensorboard=False):
+            device="cuda:0", use_tensorboard=False, use_amp: bool = False):
+        self.use_amp = use_amp
+        assert (use_amp and APEX_AVAILABLE) or (not use_amp)
         self.train_loader = train_loader
         self.val_loader = val_loader
         self.avg_window = avg_window
@@ -51,7 +53,7 @@ class BaseBot:
         self.checkpoint_dir = Path(checkpoint_dir)
         self.checkpoint_dir.mkdir(exist_ok=True, parents=True)
         self.device = device
-        self.best_performers = []
+        self.best_performers: List[Tuple] = []
         self.step = 0
         self.train_losses = None
         self.train_weights = None
@@ -75,18 +77,15 @@ class BaseBot:
         self.optimizer.zero_grad()
         output = self.model(*input_tensors)
         batch_loss = self.criterion(self.extract_prediction(output), target)
-        flag_traditional_backward = True
-        if APEX_AVAILABLE:
-            if isinstance(self.optimizer, FP16_Optimizer):
-                with amp.scale_loss(batch_loss, self.optimizer) as scaled_loss:
-                    scaled_loss.backward()
-                flag_traditional_backward = False
-        if flag_traditional_backward:
+        if self.use_amp:
+            with amp.scale_loss(batch_loss, self.optimizer) as scaled_loss:
+                scaled_loss.backward()
+        else:
             batch_loss.backward()
         self.train_losses.append(batch_loss.data.cpu().numpy())
         self.train_weights.append(target.size(self.batch_idx))
         if self.clip_grad > 0:
-            if flag_traditional_backward:
+            if not self.use_amp:
                 clip_grad_norm_(self.model.parameters(), self.clip_grad)
             else:
                 clip_grad_norm_(amp.master_params(

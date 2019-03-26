@@ -3,7 +3,7 @@ from torch.optim import Optimizer
 
 
 class BaseLRScheduler(_LRScheduler):
-    def __init__(self, optimizer, last_epoch):
+    def __init__(self, optimizer, last_epoch=-1):
         """Intentionally not calling super().__init__()"""
         if not isinstance(optimizer, Optimizer):
             flag = False
