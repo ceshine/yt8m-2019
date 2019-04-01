@@ -3,6 +3,7 @@ import random
 import logging
 from pathlib import Path
 from collections import deque
+from typing import List, Tuple
 
 import numpy as np
 import torch
@@ -10,6 +11,13 @@ from torch.nn.utils.clip_grad import clip_grad_norm_
 from tqdm import tqdm
 
 from .logger import Logger
+
+try:
+    from apex import amp
+    APEX_AVAILABLE = True
+except ModuleNotFoundError:
+    APEX_AVAILABLE = False
+
 
 AVERAGING_WINDOW = 300
 SEED = int(os.environ.get("SEED", 9293))
@@ -29,7 +37,9 @@ class BaseBot:
             self, model, train_loader, val_loader, *, optimizer, clip_grad=0,
             avg_window=AVERAGING_WINDOW, log_dir="./data/cache/logs/", log_level=logging.INFO,
             checkpoint_dir="./data/cache/model_cache/", batch_idx=0, echo=False,
-            device="cuda:0", use_tensorboard=False):
+            device="cuda:0", use_tensorboard=False, use_amp: bool = False):
+        self.use_amp = use_amp
+        assert (use_amp and APEX_AVAILABLE) or (not use_amp)
         self.train_loader = train_loader
         self.val_loader = val_loader
         self.avg_window = avg_window
@@ -43,7 +53,7 @@ class BaseBot:
         self.checkpoint_dir = Path(checkpoint_dir)
         self.checkpoint_dir.mkdir(exist_ok=True, parents=True)
         self.device = device
-        self.best_performers = []
+        self.best_performers: List[Tuple] = []
         self.step = 0
         self.train_losses = None
         self.train_weights = None
@@ -67,11 +77,19 @@ class BaseBot:
         self.optimizer.zero_grad()
         output = self.model(*input_tensors)
         batch_loss = self.criterion(self.extract_prediction(output), target)
-        batch_loss.backward()
+        if self.use_amp:
+            with amp.scale_loss(batch_loss, self.optimizer) as scaled_loss:
+                scaled_loss.backward()
+        else:
+            batch_loss.backward()
         self.train_losses.append(batch_loss.data.cpu().numpy())
         self.train_weights.append(target.size(self.batch_idx))
         if self.clip_grad > 0:
-            clip_grad_norm_(self.model.parameters(), self.clip_grad)
+            if not self.use_amp:
+                clip_grad_norm_(self.model.parameters(), self.clip_grad)
+            else:
+                clip_grad_norm_(amp.master_params(
+                    self.optimizer), self.clip_grad)
         self.optimizer.step()
 
     def log_progress(self):
@@ -95,6 +113,7 @@ class BaseBot:
             self.checkpoint_dir /
             "snapshot_{}_{}_{}.pth".format(self.name, loss_str, self.step))
         self.best_performers.append((loss, target_path, self.step))
+        self.best_performers = sorted(self.best_performers, key=lambda x: x[0])
         self.logger.info("Saving checkpoint %s...", target_path)
         torch.save(self.model.state_dict(), target_path)
         assert Path(target_path).exists()
@@ -112,7 +131,7 @@ class BaseBot:
     def train(
             self, n_steps, *, log_interval=50,
             early_stopping_cnt=0, min_improv=1e-4,
-            scheduler=None, snapshot_interval=2500):
+            scheduler=None, snapshot_interval=2500, keep_n_snapshots=-1):
         self.train_losses = deque(maxlen=self.avg_window)
         self.train_weights = deque(maxlen=self.avg_window)
         if self.val_loader is not None:
@@ -143,6 +162,8 @@ class BaseBot:
                             wo_improvement = 0
                         else:
                             wo_improvement += 1
+                        if keep_n_snapshots > 0:
+                            self.remove_checkpoints(keep=keep_n_snapshots)
                     if scheduler:
                         scheduler.step()
                     if early_stopping_cnt and wo_improvement > early_stopping_cnt:
@@ -151,7 +172,6 @@ class BaseBot:
                         break
         except KeyboardInterrupt:
             pass
-        self.best_performers = sorted(self.best_performers, key=lambda x: x[0])
 
     def eval(self, loader):
         self.model.eval()
