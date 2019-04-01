@@ -93,7 +93,7 @@ class BaseBot:
             "losses", {"val": loss},  self.step)
         target_path = (
             self.checkpoint_dir /
-            "snapshot_{}_{}.pth".format(self.name, loss_str))
+            "snapshot_{}_{}_{}.pth".format(self.name, loss_str, self.step))
         self.best_performers.append((loss, target_path, self.step))
         self.logger.info("Saving checkpoint %s...", target_path)
         torch.save(self.model.state_dict(), target_path)
