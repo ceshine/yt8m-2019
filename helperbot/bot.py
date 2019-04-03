@@ -154,7 +154,8 @@ class BaseBot:
                     self.step += 1
                     if self.step % log_interval == 0:
                         self.log_progress()
-                    if self.step % snapshot_interval == 0:
+                    if ((callable(snapshot_interval) and snapshot_interval(self.step))
+                            or (not callable(snapshot_interval) and self.step % snapshot_interval == 0)):
                         loss = self.snapshot()
                         if best_val_loss > loss + min_improv:
                             self.logger.info("New low\n")
