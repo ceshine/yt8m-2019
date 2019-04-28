@@ -3,7 +3,8 @@ import random
 import logging
 from pathlib import Path
 from collections import deque
-from typing import List, Tuple
+from typing import List, Tuple, Iterable, Optional, Union
+from dataclasses import dataclass, field
 
 import numpy as np
 import torch
@@ -18,8 +19,6 @@ try:
 except ModuleNotFoundError:
     APEX_AVAILABLE = False
 
-
-AVERAGING_WINDOW = 300
 SEED = int(os.environ.get("SEED", 9293))
 
 random.seed(SEED)
@@ -28,47 +27,51 @@ torch.manual_seed(SEED)
 torch.cuda.manual_seed(SEED)
 
 
+@dataclass
 class BaseBot:
     """Base Interface to Model Training and Inference"""
+    train_loader: Iterable
+    val_loader: Iterable
+    avg_window: int
+    criterion: object
+    model: torch.nn.Module
+    optimizer: torch.optim.Optimizer
+    name: str = "basebot"
+    use_amp: bool = False
+    clip_grad: float = 0
+    batch_idx: int = 0
+    checkpoint_dir: Path = Path("./data/cache/model_cache/")
+    device: Union[str, torch.device] = "cuda:0"
+    log_dir: Path = Path("./data/cache/logs/")
+    log_level: int = logging.INFO
+    loss_format: str = "%.8f"
+    use_tensorboard: bool = False
+    echo: bool = True
+    step: int = 0
+    best_performers: List[Tuple] = field(init=False)
+    train_losses: deque = field(init=False)
+    train_weights: deque = field(init=False)
+    metrics: Tuple = ()
+    monitor_metric: str = "loss"
 
-    name = "basebot"
-
-    def __init__(
-            self, model, train_loader, val_loader, *, optimizer, clip_grad=0,
-            avg_window=AVERAGING_WINDOW, log_dir="./data/cache/logs/", log_level=logging.INFO,
-            checkpoint_dir="./data/cache/model_cache/", batch_idx=0, echo=False,
-            device="cuda:0", use_tensorboard=False, use_amp: bool = False):
-        self.use_amp = use_amp
-        assert (use_amp and APEX_AVAILABLE) or (not use_amp)
-        self.train_loader = train_loader
-        self.val_loader = val_loader
-        self.avg_window = avg_window
-        self.clip_grad = clip_grad
-        self.optimizer = optimizer
-        self.model = model
-        self.batch_idx = batch_idx
-        self.logger = Logger(self.name, log_dir, log_level,
-                             use_tensorboard=use_tensorboard, echo=echo)
+    def __post_init__(self):
+        assert (self.use_amp and APEX_AVAILABLE) or (not self.use_amp)
+        self.logger = Logger(
+            self.name, str(self.log_dir), self.log_level,
+            use_tensorboard=self.use_tensorboard, echo=self.echo)
         self.logger.info("SEED: %s", SEED)
-        self.checkpoint_dir = Path(checkpoint_dir)
         self.checkpoint_dir.mkdir(exist_ok=True, parents=True)
-        self.device = device
         self.best_performers: List[Tuple] = []
-        self.step = 0
-        self.train_losses = None
-        self.train_weights = None
-        # Should be overriden when necessary:
-        self.criterion = torch.nn.MSELoss()
-        self.loss_format = "%.8f"
-
+        self.train_losses = deque(maxlen=self.avg_window)
+        self.train_weights = deque(maxlen=self.avg_window)
         self.count_model_parameters()
 
     def count_model_parameters(self):
         self.logger.info(
-            "# of paramters: {:,d}".format(
+            "# of parameters: {:,d}".format(
                 np.sum(p.numel() for p in self.model.parameters())))
         self.logger.info(
-            "# of trainable paramters: {:,d}".format(
+            "# of trainable parameters: {:,d}".format(
                 np.sum(p.numel() for p in self.model.parameters() if p.requires_grad)))
 
     def train_one_step(self, input_tensors, target):
@@ -106,7 +109,7 @@ class BaseBot:
     def snapshot(self):
         loss = self.eval(self.val_loader)
         loss_str = self.loss_format % loss
-        self.logger.info("Snapshot loss %s", loss_str)
+        self.logger.info("Snapshot metric %s", loss_str)
         self.logger.tb_scalars(
             "losses", {"val": loss},  self.step)
         target_path = (
@@ -132,8 +135,6 @@ class BaseBot:
             self, n_steps, *, log_interval=50,
             early_stopping_cnt=0, min_improv=1e-4,
             scheduler=None, snapshot_interval=2500, keep_n_snapshots=-1):
-        self.train_losses = deque(maxlen=self.avg_window)
-        self.train_weights = deque(maxlen=self.avg_window)
         if self.val_loader is not None:
             best_val_loss = 100
         epoch = 0

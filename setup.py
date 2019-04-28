@@ -6,6 +6,7 @@ setup(
     packages=['helperbot', ],
     install_requires=[
         'torch>=0.4.1'
+        'dataclasses'
     ],
     classifiers=[  # Optional
         # How mature is this project? Common values are
