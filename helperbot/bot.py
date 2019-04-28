@@ -12,6 +12,7 @@ from torch.nn.utils.clip_grad import clip_grad_norm_
 from tqdm import tqdm
 
 from .logger import Logger
+from .metrics import Metric
 
 try:
     from apex import amp
@@ -107,20 +108,23 @@ class BaseBot:
             "losses", {"train": train_loss_avg}, self.step)
 
     def snapshot(self):
-        loss = self.eval(self.val_loader)
-        loss_str = self.loss_format % loss
-        self.logger.info("Snapshot metric %s", loss_str)
+        metrics = self.eval(self.val_loader)
+        target_metric = metrics[self.monitor_metric]
+        metric_str = self.loss_format % target_metric
+        self.logger.info("Snapshot metric %s", metric_str)
         self.logger.tb_scalars(
-            "losses", {"val": loss},  self.step)
+            "losses", {"val": metrics["loss"]},  self.step)
+        self.logger.tb_scalars(
+            "monitor_metric", {"val": target_metric},  self.step)
         target_path = (
             self.checkpoint_dir /
-            "snapshot_{}_{}_{}.pth".format(self.name, loss_str, self.step))
-        self.best_performers.append((loss, target_path, self.step))
+            "snapshot_{}_{}_{}.pth".format(self.name, metric_str, self.step))
+        self.best_performers.append((target_metric, target_path, self.step))
         self.best_performers = sorted(self.best_performers, key=lambda x: x[0])
         self.logger.info("Saving checkpoint %s...", target_path)
         torch.save(self.model.state_dict(), target_path)
         assert Path(target_path).exists()
-        return loss
+        return target_metric
 
     @staticmethod
     def extract_prediction(output):
@@ -176,7 +180,9 @@ class BaseBot:
             pass
 
     def eval(self, loader):
+        """Warning: Only support datasets whose predictions and labels fit in memory together."""
         self.model.eval()
+        preds, ys = [], []
         losses, weights = [], []
         with torch.set_grad_enabled(False):
             for *input_tensors, y_local in tqdm(loader):
@@ -186,8 +192,18 @@ class BaseBot:
                     self.extract_prediction(output), y_local.to(self.device))
                 losses.append(batch_loss.data.cpu().numpy())
                 weights.append(y_local.size(self.batch_idx))
+                # Save batch labels and predictions
+                preds.append(self.extract_prediction(output).cpu())
+                ys.append(y_local.cpu())
         loss = np.average(losses, weights=weights)
-        return loss
+        self.logger.info(f"Criterion loss: {loss}")
+        metrics = {"loss": loss}
+        global_ys, global_preds = torch.cat(ys), torch.cat(preds)
+        for metric in self.metrics:
+            metric_loss, metric_string = metric(global_ys, global_preds)
+            metrics[metric.name] = metric_loss
+            self.logger.info(f"{metric.name}: {metric_string}")
+        return metrics
 
     def predict_batch(self, input_tensors):
         self.model.eval()
