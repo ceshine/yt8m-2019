@@ -5,7 +5,7 @@ setup(
     version='0.0.7',
     packages=['helperbot', ],
     install_requires=[
-        'torch>=0.4.1'
+        'torch>=0.4.1',
         'dataclasses'
     ],
     classifiers=[  # Optional
