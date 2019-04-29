@@ -46,6 +46,7 @@ class BaseBot:
     log_dir: Path = Path("./data/cache/logs/")
     log_level: int = logging.INFO
     loss_format: str = "%.8f"
+    metric_format: Optional[str] = None
     use_tensorboard: bool = False
     echo: bool = True
     step: int = 0
@@ -63,6 +64,8 @@ class BaseBot:
         self.logger.info("SEED: %s", SEED)
         self.checkpoint_dir.mkdir(exist_ok=True, parents=True)
         self.best_performers: List[Tuple] = []
+        if self.metric_format is None:
+            self.metric_format = self.loss_format
         self.train_losses = deque(maxlen=self.avg_window)
         self.train_weights = deque(maxlen=self.avg_window)
         self.count_model_parameters()
@@ -110,7 +113,7 @@ class BaseBot:
     def snapshot(self):
         metrics = self.eval(self.val_loader)
         target_metric = metrics[self.monitor_metric]
-        metric_str = self.loss_format % target_metric
+        metric_str = self.metric_format % target_metric
         self.logger.info("Snapshot metric %s", metric_str)
         self.logger.tb_scalars(
             "losses", {"val": metrics["loss"]},  self.step)
@@ -196,7 +199,7 @@ class BaseBot:
                 preds.append(self.extract_prediction(output).cpu())
                 ys.append(y_local.cpu())
         loss = np.average(losses, weights=weights)
-        self.logger.info(f"Criterion loss: {loss}")
+        self.logger.info("Criterion loss: {}".format(self.loss_format % loss))
         metrics = {"loss": loss}
         global_ys, global_preds = torch.cat(ys), torch.cat(preds)
         for metric in self.metrics:
