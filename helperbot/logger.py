@@ -31,9 +31,11 @@ class Logger:
         if use_tensorboard:
             from tensorboardX import SummaryWriter
             # Tensorboard
-            self.tbwriter = SummaryWriter(
+            folder = str(
                 Path(log_dir) / "summaries" /
-                "{}_{}".format(self.model_name, date_str)
+                "{}_{}".format(self.model_name, date_str))
+            self.tbwriter = SummaryWriter(
+                folder
             )
 
     def info(self, msg, *args):
@@ -52,4 +54,7 @@ class Logger:
         if self.tbwriter is None:
             self.debug("Tensorboard writer is not enabled.")
         else:
-            self.tbwriter.add_scalars(key, value, step)
+            if isinstance(value, dict):
+                self.tbwriter.add_scalars(key, value, step)
+            else:
+                self.tbwriter.add_scalar(key, value, step)
