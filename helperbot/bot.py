@@ -187,8 +187,9 @@ class BaseBot:
         self.model.eval()
         preds, ys = [], []
         losses, weights = [], []
+        self.logger.debug("Evaluating...")
         with torch.set_grad_enabled(False):
-            for *input_tensors, y_local in tqdm(loader):
+            for *input_tensors, y_local in loader:
                 input_tensors = [x.to(self.device) for x in input_tensors]
                 output = self.model(*input_tensors)
                 batch_loss = self.criterion(
