@@ -3,3 +3,4 @@ from .bot import BaseBot
 from .lr_scheduler import TriangularLR, GradualWarmupScheduler
 from .weight_decay import WeightDecayOptimizerWrapper
 from .metrics import Metric, AUC, FBeta
+from .callbacks import LearningRateSchedulerCallback, MixUpCallback

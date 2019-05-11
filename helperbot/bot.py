@@ -3,7 +3,7 @@ import random
 import logging
 from pathlib import Path
 from collections import deque
-from typing import List, Tuple, Iterable, Optional, Union
+from typing import List, Tuple, Iterable, Optional, Union, Sequence
 from dataclasses import dataclass, field
 
 import numpy as np
@@ -53,7 +53,8 @@ class BaseBot:
     best_performers: List[Tuple] = field(init=False)
     train_losses: deque = field(init=False)
     train_weights: deque = field(init=False)
-    metrics: Tuple = ()
+    metrics: Sequence = ()
+    callbacks: Sequence = ()
     monitor_metric: str = "loss"
 
     def __post_init__(self):
@@ -138,10 +139,24 @@ class BaseBot:
     def transform_prediction(prediction):
         return prediction
 
+    def run_batch_inputs_callbacks(self, input_tensors, targets):
+        for callback in self.callbacks:
+            input_tensors, targets = callback.on_batch_inputs(
+                self, input_tensors, targets)
+        return input_tensors, targets
+
+    def run_step_ends_callbacks(self):
+        for callback in self.callbacks:
+            callback.on_step_ends(self)
+
+    def run_epoch_ends_callbacks(self, epoch):
+        for callback in self.callbacks:
+            callback.on_epoch_ends(self, epoch)
+
     def train(
             self, n_steps, *, log_interval=50,
             early_stopping_cnt=0, min_improv=1e-4,
-            scheduler=None, snapshot_interval=2500, keep_n_snapshots=-1):
+            snapshot_interval=2500, keep_n_snapshots=-1):
         if self.val_loader is not None:
             best_val_loss = 100
         epoch = 0
@@ -156,9 +171,12 @@ class BaseBot:
                 epoch += 1
                 self.logger.info(
                     "=" * 20 + "Epoch %d" + "=" * 20, epoch)
-                for *input_tensors, target in self.train_loader:
+                for *input_tensors, targets in self.train_loader:
                     input_tensors = [x.to(self.device) for x in input_tensors]
-                    self.train_one_step(input_tensors, target.to(self.device))
+                    targets = targets.to(self.device)
+                    input_tensors, targets = self.run_batch_inputs_callbacks(
+                        input_tensors, targets)
+                    self.train_one_step(input_tensors, targets)
                     self.step += 1
                     if self.step % log_interval == 0:
                         self.log_progress()
@@ -173,12 +191,12 @@ class BaseBot:
                             wo_improvement += 1
                         if keep_n_snapshots > 0:
                             self.remove_checkpoints(keep=keep_n_snapshots)
-                    if scheduler:
-                        scheduler.step()
+                    self.run_step_ends_callbacks()
                     if early_stopping_cnt and wo_improvement > early_stopping_cnt:
                         return
                     if self.step >= n_steps:
                         break
+                self.run_epoch_ends_callbacks(epoch + 1)
         except KeyboardInterrupt:
             pass
 
