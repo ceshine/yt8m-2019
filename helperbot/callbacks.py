@@ -34,14 +34,17 @@ class MixUpCallback(Callback):
         lambd_tensor = batch.new(lambd).view(
             -1, *[1 for _ in range(len(batch.size())-1)]
         ).expand(-1, *batch.shape[1:])
-        new_batch = (batch * lambd_tensor + batch[permuted_idx] * (1-lambd))
+        # Combine input batch
+        new_batch = (batch * lambd_tensor +
+                     batch[permuted_idx] * (1-lambd_tensor))
         lambd_tensor = batch.new(lambd).view(
             -1, *[1 for _ in range(len(targets.size())-1)]
         ).expand(-1, *targets.shape[1:])
-        new_labels = (targets * lambd_tensor +
-                      targets[permuted_idx] * (1-lambd))
+        # Combine targets
+        new_targets = (targets * lambd_tensor +
+                       targets[permuted_idx] * (1-lambd_tensor))
         input_tensors[0] = new_batch
-        return input_tensors, new_labels
+        return input_tensors, new_targets
 
 
 class LearningRateSchedulerCallback(Callback):

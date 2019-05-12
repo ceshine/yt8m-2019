@@ -91,7 +91,7 @@ class BaseBot:
         else:
             batch_loss.backward()
         self.train_losses.append(batch_loss.data.cpu().numpy())
-        self.train_weights.append(target.size(self.batch_idx))
+        self.train_weights.append(input_tensors[0].size(self.batch_idx))
         if self.clip_grad > 0:
             if not self.use_amp:
                 clip_grad_norm_(self.model.parameters(), self.clip_grad)
