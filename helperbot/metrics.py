@@ -16,9 +16,10 @@ class FBeta(Metric):
     """FBeta for binary targets"""
     name = "fbeta"
 
-    def __init__(self, step, beta=2):
+    def __init__(self, step, beta=2, average="binary"):
         self.step = step
         self.beta = beta
+        self.average = average
 
     def __call__(self, truth: torch.Tensor, pred: torch.Tensor) -> Tuple[float, str]:
         best_fbeta, best_thres = self.find_best_fbeta_threshold(
@@ -26,12 +27,12 @@ class FBeta(Metric):
             step=self.step, beta=self.beta)
         return best_fbeta * -1, f"{best_fbeta:.4f} @ {best_thres:.2f}"
 
-    @staticmethod
-    def find_best_fbeta_threshold(truth, probs, beta=2, step=0.05):
+    def find_best_fbeta_threshold(self, truth, probs, beta=2, step=0.05):
         best, best_thres = 0, -1
         for thres in np.arange(step, 1, step):
             current = fbeta_score(
-                truth, (probs >= thres).astype("int8"), beta=beta)
+                truth, (probs >= thres).astype("int8"),
+                beta=beta, average=self.average)
             if current > best:
                 best = current
                 best_thres = thres
