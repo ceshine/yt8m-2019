@@ -56,6 +56,7 @@ class BaseBot:
     metrics: Sequence = ()
     callbacks: Sequence = ()
     monitor_metric: str = "loss"
+    pbar: bool = False
 
     def __post_init__(self):
         assert (self.use_amp and APEX_AVAILABLE) or (not self.use_amp)
@@ -207,7 +208,7 @@ class BaseBot:
         losses, weights = [], []
         self.logger.debug("Evaluating...")
         with torch.set_grad_enabled(False):
-            for *input_tensors, y_local in loader:
+            for *input_tensors, y_local in tqdm(loader, disable=not self.pbar):
                 input_tensors = [x.to(self.device) for x in input_tensors]
                 output = self.model(*input_tensors)
                 batch_loss = self.criterion(
@@ -247,7 +248,7 @@ class BaseBot:
         self.model.eval()
         outputs, y_global = [], []
         with torch.set_grad_enabled(False):
-            for *input_tensors, y_local in tqdm(loader):
+            for *input_tensors, y_local in tqdm(loader, disable=not self.pbar):
                 input_tensors = [x.to(self.device) for x in input_tensors]
                 outputs.append(self.predict_batch(input_tensors).cpu())
                 if return_y:
