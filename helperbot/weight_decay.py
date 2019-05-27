@@ -2,19 +2,23 @@ from torch.optim import Optimizer
 
 
 class WeightDecayOptimizerWrapper(Optimizer):
-    def __init__(self, optimizer: Optimizer, weight_decay: float) -> None:
+    def __init__(self, optimizer: Optimizer, weight_decay: float, change_with_lr: bool = True) -> None:
         assert weight_decay > 0
         self.optimizer = optimizer
         self.weight_decay = weight_decay
         self.state = self.optimizer.state
+        self.change_with_lr = change_with_lr
 
     def step(self, closure=None) -> None:
         for group in self.optimizer.param_groups:
             for param in group['params']:
                 if param.grad is None:
                     continue
-                param.data = param.data.add(
-                    -self.weight_decay * group['lr'], param.data)
+                if self.change_with_lr:
+                    param.data = param.data.add(
+                        -self.weight_decay * group['lr'], param.data)
+                else:
+                    param.data.add_(-self.weight_decay, param.data)
         self.optimizer.step()
 
     def zero_grad(self) -> None:
