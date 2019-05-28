@@ -1,8 +1,10 @@
+import warnings
 from typing import Tuple
 
 import torch
 import numpy as np
 from sklearn.metrics import fbeta_score, roc_auc_score
+from sklearn.exceptions import UndefinedMetricWarning
 
 
 class Metric:
@@ -29,13 +31,15 @@ class FBeta(Metric):
 
     def find_best_fbeta_threshold(self, truth, probs, beta=2, step=0.05):
         best, best_thres = 0, -1
-        for thres in np.arange(step, 1, step):
-            current = fbeta_score(
-                truth, (probs >= thres).astype("int8"),
-                beta=beta, average=self.average)
-            if current > best:
-                best = current
-                best_thres = thres
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', category=UndefinedMetricWarning)
+            for thres in np.arange(step, 1, step):
+                current = fbeta_score(
+                    truth, (probs >= thres).astype("int8"),
+                    beta=beta, average=self.average)
+                if current > best:
+                    best = current
+                    best_thres = thres
         return best, best_thres
 
 
