@@ -54,3 +54,31 @@ class LearningRateSchedulerCallback(Callback):
 
     def on_step_ends(self, bot):
         self.scheduler.step()
+
+
+class StepwiseLinearPropertyScheduler(Callback):
+    def __init__(self, target_obj, property_name, start_val, end_val, decay_start_step, decay):
+        self.target_obj = target_obj
+        self.property_name = property_name
+        self.start_val = start_val
+        self.end_val = end_val
+        self.decay_start_step = decay_start_step
+        self.decay = decay
+
+    def on_step_ends(self, bot):
+        if bot.step % 200 == 0:
+            bot.logger.info(
+                "%s %s %.4f",
+                self.target_obj.__class__.__name__,
+                self.property_name,
+                getattr(self.target_obj, self.property_name))
+        new_val = self.get_value(bot)
+        setattr(self.target_obj, self.property_name, new_val)
+
+    def get_value(self, bot):
+        if self.start_val == self.end_val or bot.step <= self.decay_start_step:
+            return self.start_val
+        change = (self.end_val - self.start_val) * min(
+            ((bot.step - self.decay_start_step) * self.decay), 1
+        )
+        return self.start_val + change
