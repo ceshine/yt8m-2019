@@ -75,10 +75,10 @@ class BaseBot:
     def count_model_parameters(self):
         self.logger.info(
             "# of parameters: {:,d}".format(
-                np.sum(p.numel() for p in self.model.parameters())))
+                np.sum(list(p.numel() for p in self.model.parameters()))))
         self.logger.info(
             "# of trainable parameters: {:,d}".format(
-                np.sum(p.numel() for p in self.model.parameters() if p.requires_grad)))
+                np.sum(list(p.numel() for p in self.model.parameters() if p.requires_grad))))
 
     def train_one_step(self, input_tensors, target):
         self.model.train()
