@@ -1,24 +1,32 @@
+from typing import Union, Sequence
+
 from torch.optim import Optimizer
 
 
 class WeightDecayOptimizerWrapper(Optimizer):
-    def __init__(self, optimizer: Optimizer, weight_decay: float, change_with_lr: bool = True) -> None:
-        assert weight_decay > 0
+    def __init__(self, optimizer: Optimizer, weight_decay: Union[Sequence[float], float], change_with_lr: bool = True) -> None:
         self.optimizer = optimizer
-        self.weight_decay = weight_decay
+        if isinstance(weight_decay, (list, tuple)):
+            assert len(weight_decay) == len(self.optimizer.param_groups)
+            assert all((x >= 0 for x in weight_decay))
+            self.weight_decays = weight_decay
+        else:
+            assert weight_decay >= 0
+            self.weight_decays = [weight_decay] * \
+                len(self.optimizer.param_groups)
         self.state = self.optimizer.state
         self.change_with_lr = change_with_lr
 
     def step(self, closure=None) -> None:
-        for group in self.optimizer.param_groups:
+        for group, weight_decay in zip(self.optimizer.param_groups, self.weight_decays):
             for param in group['params']:
-                if param.grad is None:
+                if param.grad is None or weight_decay == 0:
                     continue
                 if self.change_with_lr:
                     param.data = param.data.add(
-                        -self.weight_decay * group['lr'], param.data)
+                        -weight_decay * group['lr'], param.data)
                 else:
-                    param.data.add_(-self.weight_decay, param.data)
+                    param.data.add_(-weight_decay, param.data)
         self.optimizer.step()
 
     def zero_grad(self) -> None:
