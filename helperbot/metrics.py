@@ -51,3 +51,14 @@ class AUC(Metric):
         auc_score = roc_auc_score(
             truth.numpy(), torch.sigmoid(pred).numpy())
         return auc_score * -1, f"{auc_score * 100:.2f}"
+
+
+class SoftmaxAccuracy(Metric):
+    name = "accuracy"
+
+    def __call__(self, truth: torch.Tensor, pred: torch.Tensor) -> Tuple[float, str]:
+        correct = torch.sum(
+            truth.view(-1) == torch.argmax(pred, dim=-1).view(-1)).item()
+        total = truth.view(-1).size(0)
+        accuracy = (correct / total)
+        return accuracy * -1, f"{accuracy * 100:.2f}%"
