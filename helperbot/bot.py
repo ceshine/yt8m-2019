@@ -48,6 +48,7 @@ class BaseBot:
     loss_format: str = "%.8f"
     metric_format: Optional[str] = None
     use_tensorboard: bool = False
+    gradient_accumulation_steps: int = 1
     echo: bool = True
     step: int = 0
     best_performers: List[Tuple] = field(init=False)
@@ -83,7 +84,6 @@ class BaseBot:
     def train_one_step(self, input_tensors, target):
         self.model.train()
         assert self.model.training
-        self.optimizer.zero_grad()
         output = self.model(*input_tensors)
         batch_loss = self.criterion(self.extract_prediction(output), target)
         if self.use_amp:
@@ -99,7 +99,9 @@ class BaseBot:
             else:
                 clip_grad_norm_(amp.master_params(
                     self.optimizer), self.clip_grad)
-        self.optimizer.step()
+        if self.step % self.gradient_accumulation_steps == 0:
+            self.optimizer.step()
+            self.optimizer.zero_grad()
 
     def log_progress(self):
         train_loss_avg = np.average(
@@ -158,6 +160,7 @@ class BaseBot:
             self, n_steps, *, log_interval=50,
             early_stopping_cnt=0, min_improv=1e-4,
             snapshot_interval=2500, keep_n_snapshots=-1):
+        self.optimizer.zero_grad()
         if self.val_loader is not None:
             best_val_loss = 100
         epoch = 0
@@ -210,13 +213,13 @@ class BaseBot:
         with torch.set_grad_enabled(False):
             for *input_tensors, y_local in tqdm(loader, disable=not self.pbar):
                 input_tensors = [x.to(self.device) for x in input_tensors]
-                output = self.model(*input_tensors)
+                output = self.extract_prediction(self.model(*input_tensors))
                 batch_loss = self.criterion(
-                    self.extract_prediction(output), y_local.to(self.device))
+                    output, y_local.to(self.device))
                 losses.append(batch_loss.data.cpu().numpy())
                 weights.append(y_local.size(self.batch_idx))
                 # Save batch labels and predictions
-                preds.append(self.extract_prediction(output).cpu())
+                preds.append(output.cpu())
                 ys.append(y_local.cpu())
         loss = np.average(losses, weights=weights)
         self.logger.info("Criterion loss: {}".format(self.loss_format % loss))
