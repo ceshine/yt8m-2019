@@ -85,13 +85,16 @@ class BaseBot:
         self.model.train()
         assert self.model.training
         output = self.model(*input_tensors)
-        batch_loss = self.criterion(self.extract_prediction(output), target)
+        batch_loss = self.criterion(
+            self.extract_prediction(output), target
+        ) / self.gradient_accumulation_steps
         if self.use_amp:
             with amp.scale_loss(batch_loss, self.optimizer) as scaled_loss:
                 scaled_loss.backward()
         else:
             batch_loss.backward()
-        self.train_losses.append(batch_loss.data.cpu().numpy())
+        self.train_losses.append(
+            batch_loss.data.cpu().numpy() * self.gradient_accumulation_steps)
         self.train_weights.append(input_tensors[0].size(self.batch_idx))
         if self.clip_grad > 0:
             if not self.use_amp:
