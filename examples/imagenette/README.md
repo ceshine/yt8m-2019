@@ -4,6 +4,10 @@
 
 Download the [imagenette dataset (full)](https://s3.amazonaws.com/fast-ai-imageclas/imagenette.tgz) and extract into `data` folder. It should now contains two folders: `train` and `val`.
 
+## Training instructions
+
+Run `python main.py -h` to view all the available arguments.
+
 ## Some Results
 
 | Size (px) | Epochs | Accuracy | Params | Arch | Log |
