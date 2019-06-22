@@ -116,7 +116,8 @@ def train_from_scratch(args, model, train_loader, valid_loader, criterion):
         criterion=criterion,
         avg_window=len(train_loader) // 5,
         callbacks=callbacks,
-        pbar=True, use_tensorboard=True
+        pbar=True, use_tensorboard=True,
+        use_amp=(args.amp != '')
     )
     bot.train(
         n_steps,
