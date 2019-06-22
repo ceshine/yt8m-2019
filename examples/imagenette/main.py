@@ -19,6 +19,12 @@ from models import get_seresnet_model, get_densenet_model
 from dataset import TrainDataset, N_CLASSES, DATA_ROOT, build_dataframe_from_folder
 from transforms import train_transform, test_transform
 
+try:
+    from apex import amp
+    APEX_AVAILABLE = True
+except ModuleNotFoundError:
+    APEX_AVAILABLE = False
+
 CACHE_DIR = Path('./data/cache/')
 CACHE_DIR.mkdir(exist_ok=True, parents=True)
 MODEL_DIR = Path('./data/cache/')
@@ -80,36 +86,44 @@ def train_from_scratch(args, model, train_loader, valid_loader, criterion):
             [n for n, p in model.named_parameters()
              if any(nd in n for nd in NO_DECAY)]
         )
+    if args.amp:
+        if not APEX_AVAILABLE:
+            raise ValueError("Apex is not installed!")
+        model, optimizer = amp.initialize(
+            model, optimizer, opt_level=args.amp
+        )
+
+    callbacks = [
+        LearningRateSchedulerCallback(
+            # TriangularLR(
+            #     optimizer, 100, ratio=4, steps_per_cycle=n_steps
+            # )
+            GradualWarmupScheduler(
+                optimizer, 100, len(train_loader),
+                after_scheduler=CosineAnnealingLR(
+                    optimizer, n_steps - len(train_loader)
+                )
+            )
+        )
+    ]
+    if args.mixup_alpha:
+        callbacks.append(MixUpCallback(
+            alpha=args.mixup_alpha, softmax_target=True))
     bot = ImageClassificationBot(
         model=model, train_loader=train_loader,
         val_loader=valid_loader, clip_grad=10.,
         optimizer=optimizer, echo=True,
         criterion=criterion,
-        avg_window=len(train_loader) // 15,
-        callbacks=[
-            LearningRateSchedulerCallback(
-                # TriangularLR(
-                #     optimizer, 100, ratio=4, steps_per_cycle=n_steps
-                # )
-                GradualWarmupScheduler(
-                    optimizer, 100, len(train_loader),
-                    after_scheduler=CosineAnnealingLR(
-                        optimizer, n_steps - len(train_loader)
-                    )
-                )
-            )
-        ],
+        avg_window=len(train_loader) // 5,
+        callbacks=callbacks,
         pbar=True, use_tensorboard=True
     )
-    if args.mixup_alpha:
-        bot.callbacks.append(MixUpCallback(
-            alpha=args.mixup_alpha, softmax_target=True))
     bot.train(
         n_steps,
-        log_interval=len(train_loader) // 10,
+        log_interval=len(train_loader) // 6,
         snapshot_interval=len(train_loader) // 2,
-        early_stopping_cnt=8,
-        min_improv=1e-3,
+        # early_stopping_cnt=8,
+        min_improv=1e-2,
         keep_n_snapshots=1
     )
     bot.remove_checkpoints(keep=1)
@@ -117,7 +131,6 @@ def train_from_scratch(args, model, train_loader, valid_loader, criterion):
     torch.save(bot.model.state_dict(), CACHE_DIR /
                f"final_weights.pth")
     bot.remove_checkpoints(keep=0)
-    torch.save(bot.model, MODEL_DIR / f"final_model.pth")
 
 
 def main():
@@ -129,6 +142,7 @@ def main():
     arg('--epochs', type=int, default=5)
     arg('--mixup-alpha', type=float, default=0)
     arg('--arch', type=str, default='seresnext50')
+    arg('--amp', type=str, default='')
     arg('--debug', action='store_true')
     args = parser.parse_args()
 
