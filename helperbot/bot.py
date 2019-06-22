@@ -54,8 +54,8 @@ class BaseBot:
     best_performers: List[Tuple] = field(init=False)
     train_losses: deque = field(init=False)
     train_weights: deque = field(init=False)
-    metrics: Sequence = []
-    callbacks: Sequence = []
+    metrics: Sequence = ()
+    callbacks: Sequence = ()
     monitor_metric: str = "loss"
     pbar: bool = False
 
