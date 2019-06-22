@@ -24,13 +24,17 @@ def get_head(nf: int, n_classes):
         # nn.Dropout(p=0.25),
         nn.Linear(nf, n_classes)
     )
+    return model
+
+
+def init_weights(model):
     for i, module in enumerate(model):
         if isinstance(module, (nn.BatchNorm1d, nn.BatchNorm2d)):
             if module.weight is not None:
                 nn.init.uniform_(module.weight)
             if module.bias is not None:
                 nn.init.constant_(module.bias, 0)
-        if isinstance(module, nn.Linear):
+        if isinstance(module, (nn.Linear, nn.Conv2d, nn.Conv1d)):
             if getattr(module, "weight_v", None) is not None:
                 print("Initing linear with weight normalization")
                 assert model[i].weight_g is not None
@@ -51,7 +55,7 @@ def get_seresnet_model(arch: str = "se_resnext50_32x4d", n_classes: int = 10, pr
         get_head(2048, n_classes))
     print(" | ".join([
         "{:,d}".format(np.sum([p.numel() for p in x.parameters()])) for x in model]))
-    return model
+    return init_weights(model)
 
 
 def get_densenet_model(arch: str = "densenet169", n_classes: int = 10, pretrained: bool = False):
@@ -64,7 +68,7 @@ def get_densenet_model(arch: str = "densenet169", n_classes: int = 10, pretraine
         get_head(full.features[-1].num_features, n_classes))
     print(" | ".join([
         "{:,d}".format(np.sum([p.numel() for p in x.parameters()])) for x in model]))
-    return model
+    return init_weights(model)
 
 
 class Swish(nn.Module):
