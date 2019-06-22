@@ -53,7 +53,7 @@ class AUC(Metric):
         return auc_score * -1, f"{auc_score * 100:.2f}"
 
 
-class SoftmaxAccuracy(Metric):
+class Top1Accuracy(Metric):
     name = "accuracy"
 
     def __call__(self, truth: torch.Tensor, pred: torch.Tensor) -> Tuple[float, str]:
@@ -62,3 +62,19 @@ class SoftmaxAccuracy(Metric):
         total = truth.view(-1).size(0)
         accuracy = (correct / total)
         return accuracy * -1, f"{accuracy * 100:.2f}%"
+
+
+class TopKAccuracy(Metric):
+    def __init__(self, k=1):
+        self.name = f"top_{k}_accuracy"
+        self.k = k
+
+    def __call__(self, truth: torch.Tensor, pred: torch.Tensor) -> Tuple[float, str]:
+        with torch.no_grad():
+            _, pred = pred.topk(self.k, dim=1, largest=True, sorted=True)
+            pred = pred.t()
+            correct = pred.eq(
+                truth.view(1, -1).expand_as(pred)
+            ).view(-1).float().sum(0, keepdim=True)
+            accuracy = correct.mul_(100.0 / truth.size(0)).item()
+        return accuracy * -1, f"{accuracy:.2f}%"
