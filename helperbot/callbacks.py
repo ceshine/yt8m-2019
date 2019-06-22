@@ -19,9 +19,10 @@ class MixUpCallback(Callback):
     Reference: https://github.com/fastai/fastai/blob/master/fastai/callbacks/mixup.py
     """
 
-    def __init__(self, alpha: float = 0.4):
+    def __init__(self, alpha: float = 0.4, softmax_target: bool = False):
         super().__init__()
         self.alpha = alpha
+        self.softmax_target = softmax_target
 
     def on_batch_inputs(self, bot, input_tensors, targets):
         batch = input_tensors[0]
@@ -37,12 +38,16 @@ class MixUpCallback(Callback):
         # Combine input batch
         new_batch = (batch * lambd_tensor +
                      batch[permuted_idx] * (1-lambd_tensor))
-        lambd_tensor = batch.new(lambd).view(
-            -1, *[1 for _ in range(len(targets.size())-1)]
-        ).expand(-1, *targets.shape[1:])
         # Combine targets
-        new_targets = (targets * lambd_tensor +
-                       targets[permuted_idx] * (1-lambd_tensor))
+        if self.softmax_target:
+            new_targets = torch.stack([
+                targets.float(), targets[permuted_idx].float(), lambd_tensor
+            ], dim=1)
+        else:
+            new_targets = (
+                targets * lambd_tensor +
+                targets[permuted_idx] * (1-lambd_tensor)
+            )
         input_tensors[0] = new_batch
         return input_tensors, new_targets
 

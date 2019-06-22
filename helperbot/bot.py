@@ -54,8 +54,8 @@ class BaseBot:
     best_performers: List[Tuple] = field(init=False)
     train_losses: deque = field(init=False)
     train_weights: deque = field(init=False)
-    metrics: Sequence = ()
-    callbacks: Sequence = ()
+    metrics: Sequence = []
+    callbacks: Sequence = []
     monitor_metric: str = "loss"
     pbar: bool = False
 
@@ -219,7 +219,7 @@ class BaseBot:
                 output = self.extract_prediction(self.model(*input_tensors))
                 batch_loss = self.criterion(
                     output, y_local.to(self.device))
-                losses.append(batch_loss.data.cpu().numpy())
+                losses.append(batch_loss.data.cpu().item())
                 weights.append(y_local.size(self.batch_idx))
                 # Save batch labels and predictions
                 preds.append(output.cpu())
