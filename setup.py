@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
     name='PyTorchHelperBot',
-    version='0.1.4',
+    version='0.1.5',
     packages=['helperbot', ],
     install_requires=[
         'torch>=0.4.1',
