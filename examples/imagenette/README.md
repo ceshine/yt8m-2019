@@ -24,5 +24,7 @@ Hardware: i7-7700 + GTX 1070
 
 | Size (px) | Epochs | Accuracy | Params | Arch | Log | Amp | Time |
 |--|--|--|--|--|--|--|--|
-| 192 | 5 | 85.60% | `--batch-size 64 --lr 5e-3 --mixup-alpha 0` | seresnext50 | [colab_o0_bs64_e5.txt](logs/colab_o1_bs64_e5.txt) |  | 13min 18s |
+| 192 | 5 | 85.60% | `--batch-size 64 --lr 5e-3 --mixup-alpha 0` | seresnext50 | [colab_o0_bs64_e5.txt](logs/colab_o0_bs64_e5.txt) | | 13min 18s |
 | 192 | 5 | 84.20% | `--batch-size 64 --lr 5e-3 --mixup-alpha 0 --amp O1` | seresnext50 | [colab_o1_bs64_e5.txt](logs/colab_o1_bs64_e5.txt) | O1 | 9min 59s |
+| 192 | 20 | 93.40% | `--batch-size 64 --lr 3e-3 --mixup-alpha 0` | seresnext50 | [colab_o0_bs64_e20.txt](logs/colab_o0_bs64_e20.txt) | | 52min 50s |
+| 192 | 20 | 92.40% | `--batch-size 64 --lr 3e-3 --mixup-alpha 0 --amp O1` | seresnext50 | [colab_o1_bs64_e20.txt](logs/colab_o1_bs64_e20.txt) | O1 | 39min 31s |
