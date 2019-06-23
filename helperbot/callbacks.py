@@ -31,13 +31,17 @@ class MixUpCallback(Callback):
         lambd = np.concatenate(
             [lambd[:, np.newaxis], 1-lambd[:, np.newaxis]], axis=1
         ).max(axis=1)
-        # Create the tensor and expand
+        # Create the tensor and expand (for batch inputs)
         lambd_tensor = batch.new(lambd).view(
             -1, *[1 for _ in range(len(batch.size())-1)]
         ).expand(-1, *batch.shape[1:])
         # Combine input batch
         new_batch = (batch * lambd_tensor +
                      batch[permuted_idx] * (1-lambd_tensor))
+        # Create the tensor and expand (for target)
+        lambd_tensor = batch.new(lambd).view(
+            -1, *[1 for _ in range(len(targets.size())-1)]
+        ).expand(-1, *targets.shape[1:])
         # Combine targets
         if self.softmax_target:
             new_targets = torch.stack([
