@@ -124,7 +124,7 @@ def train_from_scratch(args, model, train_loader, valid_loader, criterion):
         log_interval=len(train_loader) // 6,
         snapshot_interval=len(train_loader) // 2,
         # early_stopping_cnt=8,
-        min_improv=1e-2,
+        min_improv=1e-3,
         keep_n_snapshots=1
     )
     bot.remove_checkpoints(keep=1)
