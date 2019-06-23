@@ -18,3 +18,8 @@ plots
 .mypy_cache
 pylintrc
 *.egg-info/
+.cache/
+core
+.nv/
+.bash_history
+data

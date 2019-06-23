@@ -26,5 +26,10 @@ Hardware: i7-7700 + GTX 1070
 |--|--|--|--|--|--|--|--|
 | 192 | 5 | 85.60% | `--batch-size 64 --lr 5e-3 --mixup-alpha 0` | seresnext50 | [colab_o0_bs64_e5.txt](logs/colab_o0_bs64_e5.txt) | | 13min 18s |
 | 192 | 5 | 84.20% | `--batch-size 64 --lr 5e-3 --mixup-alpha 0 --amp O1` | seresnext50 | [colab_o1_bs64_e5.txt](logs/colab_o1_bs64_e5.txt) | O1 | 9min 59s |
+| 192 | 5 | 85.80% | `--batch-size 64 --lr 5e-3 --mixup-alpha 0 --amp O1` | seresnext50 | [colab_o1_bs64_e5_2.txt](logs/colab_o1_bs64_e5_2.txt)* | O1 | 9min 47s |
+| 192 | 5 | 85.40% | `--batch-size 64 --lr 5e-3 --mixup-alpha 0 --amp O2` | seresnext50 | [colab_o2_bs64_e5.txt](logs/colab_o2_bs64_e5.txt)* | O2 | 9min 35s |
 | 192 | 20 | 93.40% | `--batch-size 64 --lr 3e-3 --mixup-alpha 0` | seresnext50 | [colab_o0_bs64_e20.txt](logs/colab_o0_bs64_e20.txt) | | 52min 50s |
 | 192 | 20 | 92.40% | `--batch-size 64 --lr 3e-3 --mixup-alpha 0 --amp O1` | seresnext50 | [colab_o1_bs64_e20.txt](logs/colab_o1_bs64_e20.txt) | O1 | 39min 31s |
+| 192 | 20 | 93.00% | `--batch-size 64 --lr 3e-3 --mixup-alpha 0 --amp O2` | seresnext50 | [colab_o2_bs64_e20.txt](logs/colab_o2_bs64_e20.txt)* | O2 | 38min 1s |
+
+*: Using the newer version where the weights of the entire network is explicitly initialized.
