@@ -34,5 +34,22 @@ Hardware: i7-7700 + GTX 1070
 | 192 | 20 | 91.00% | `--batch-size 64 --lr 3e-3 --mixup-alpha 0` | densenet161 | [colab_o1_bs64_e20_dense161.txt](logs/colab_o1_bs64_e20_dense161.txt) | | 48min 44s |
 | 192 | 40 | 94.40% | `--batch-size 64 --lr 3e-3 --mixup-alpha 0 --amp O1` | seresnext50 | [colab_o1_bs64_e40.txt](logs/colab_o1_bs64_e40.txt)* | O1 | 1h 16min 12s |
 | 192 | 40 | 95.00% | `--batch-size 64 --lr 3e-3 --mixup-alpha .2 --amp O1` | seresnext50 | [colab_o1_bs64_e40_m20.txt](logs/colab_o1_bs64_e40_m20.txt)* | O1 | 1h 18min 3s |
+| 192 | 40 | 94.00% | `--batch-size 64 --lr 3e-3 --mixup-alpha .2 --amp O1` | densenet161 | [colab_o1_bs64_e40_m20_dense161.txt](logs/colab_o1_bs64_e40_m20_dense161.txt)* | O1 | 1h 37min 54s |
 
 *: Using the newer version where the weights of the entire network is explicitly initialized.
+
+### Tensorboad Samples
+
+From "[colab_o1_bs64_e40_m20_dense161.txt](logs/colab_o1_bs64_e40_m20_dense161.txt)" run:
+
+Train and validation losses:
+
+![losses](imgs/tensorboard-losses.png)
+
+Learning rates:
+
+![learning rates](imgs/tensorboard-lr.png)
+
+Validation accuracy:
+
+![Validation Accuracy](imgs/tensorboard-accuracy.png)
