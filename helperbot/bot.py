@@ -183,8 +183,8 @@ class BaseBot:
                     targets = targets.to(self.device)
                     input_tensors, targets = self.run_batch_inputs_callbacks(
                         input_tensors, targets)
-                    self.train_one_step(input_tensors, targets)
                     self.step += 1
+                    self.train_one_step(input_tensors, targets)
                     if self.step % log_interval == 0:
                         self.log_progress()
                     if ((callable(snapshot_interval) and snapshot_interval(self.step))
@@ -206,6 +206,7 @@ class BaseBot:
                 self.run_epoch_ends_callbacks(epoch + 1)
         except KeyboardInterrupt:
             pass
+        self.log_progress()
 
     def eval(self, loader):
         """Warning: Only support datasets whose predictions and labels fit in memory together."""

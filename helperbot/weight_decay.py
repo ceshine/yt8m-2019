@@ -23,7 +23,7 @@ class WeightDecayOptimizerWrapper(Optimizer):
                 if param.grad is None or weight_decay == 0:
                     continue
                 if self.change_with_lr:
-                    param.data = param.data.add(
+                    param.data.add_(
                         -weight_decay * group['lr'], param.data)
                 else:
                     param.data.add_(-weight_decay, param.data)
