@@ -96,13 +96,13 @@ class BaseBot:
         self.train_losses.append(
             batch_loss.data.cpu().numpy() * self.gradient_accumulation_steps)
         self.train_weights.append(input_tensors[0].size(self.batch_idx))
-        if self.clip_grad > 0:
-            if not self.use_amp:
-                clip_grad_norm_(self.model.parameters(), self.clip_grad)
-            else:
-                clip_grad_norm_(amp.master_params(
-                    self.optimizer), self.clip_grad)
         if self.step % self.gradient_accumulation_steps == 0:
+            if self.clip_grad > 0:
+                if not self.use_amp:
+                    clip_grad_norm_(self.model.parameters(), self.clip_grad)
+                else:
+                    clip_grad_norm_(amp.master_params(
+                        self.optimizer), self.clip_grad)
             self.optimizer.step()
             self.optimizer.zero_grad()
 
