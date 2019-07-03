@@ -6,7 +6,9 @@ setup(
     packages=['helperbot', ],
     install_requires=[
         'torch>=0.4.1',
-        'dataclasses'
+        'dataclasses',
+        'tqdm>=4.29.1',
+        'scikit-learn>=0.21.2'
     ],
     classifiers=[  # Optional
         # How mature is this project? Common values are

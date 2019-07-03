@@ -55,6 +55,9 @@ def get_seresnet_model(arch: str = "se_resnext50_32x4d", n_classes: int = 10, pr
         get_head(2048, n_classes))
     print(" | ".join([
         "{:,d}".format(np.sum([p.numel() for p in x.parameters()])) for x in model]))
+    if pretrained:
+        init_weights(model[-1])
+        return model
     return init_weights(model)
 
 
@@ -68,6 +71,9 @@ def get_densenet_model(arch: str = "densenet169", n_classes: int = 10, pretraine
         get_head(full.features[-1].num_features, n_classes))
     print(" | ".join([
         "{:,d}".format(np.sum([p.numel() for p in x.parameters()])) for x in model]))
+    if pretrained:
+        init_weights(model[-1])
+        return model
     return init_weights(model)
 
 
