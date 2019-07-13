@@ -171,8 +171,12 @@ class BaseBot:
         self.best_performers = []
         self.logger.info(
             "Optimizer {}".format(str(self.optimizer)))
-        self.logger.info("Batches per epoch: {}".format(
-            len(self.train_loader)))
+        try:
+            self.logger.info("Batches per epoch: {}".format(
+                len(self.train_loader)))
+        except TypeError:
+            # IterableDataset doesn't have length
+            pass
         try:
             while self.step < n_steps:
                 epoch += 1
