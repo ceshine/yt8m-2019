@@ -2,7 +2,7 @@
 
 ## Preparation
 
-Download the [imagenette dataset (full)](https://s3.amazonaws.com/fast-ai-imageclas/imagenette.tgz) and extract into `data` folder. It should now contains two folders: `train` and `val`.
+Download the [imagenette dataset (full)](https://s3.amazonaws.com/fast-ai-imageclas/imagenette.tgz) and extract into `data` folder. It should now contain two folders: `train` and `val`.
 
 ## Training instructions
 
@@ -10,7 +10,7 @@ Run `python main.py -h` to view all the available arguments.
 
 ## Some Local Results
 
-Hardware: i7-7700 + GTX 1070
+Hardware: *i7-7700 + GTX 1070*. Helper bot version: `0.1.6`.
 
 | Size (px) | Epochs | Accuracy | Params | Arch | Log |
 |--|--|--|--|--|--|
@@ -21,6 +21,8 @@ Hardware: i7-7700 + GTX 1070
 ## Google Colab Results
 
 [Notebook Link](https://colab.research.google.com/drive/1NppuVSUvNYIEfL7j3DEOKemhrdZFFPDg)
+
+The following results were obtained with helper bot version `0.1.6`.
 
 | Size (px) | Epochs | Accuracy | Params | Arch | Log | Amp | Time |
 |--|--|--|--|--|--|--|--|
@@ -36,7 +38,7 @@ Hardware: i7-7700 + GTX 1070
 | 192 | 40 | 95.00% | `--batch-size 64 --lr 3e-3 --mixup-alpha .2 --amp O1` | seresnext50 | [colab_o1_bs64_e40_m20.txt](logs/colab_o1_bs64_e40_m20.txt)* | O1 | 1h 18min 3s |
 | 192 | 40 | 94.00% | `--batch-size 64 --lr 3e-3 --mixup-alpha .2 --amp O1` | densenet161 | [colab_o1_bs64_e40_m20_dense161.txt](logs/colab_o1_bs64_e40_m20_dense161.txt)* | O1 | 1h 37min 54s |
 
-*: Using the newer version where the weights of the entire network is explicitly initialized.
+*: Using the newer version where the weights of the entire network are explicitly initialized.
 
 ### Tensorboad Samples
 

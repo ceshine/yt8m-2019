@@ -77,9 +77,8 @@ class Top1Accuracy(Metric):
 
 
 class TopKAccuracy(Metric):
-    name = f"top_{k}_accuracy"
-
     def __init__(self, k=1):
+        name = f"top_{k}_accuracy"
         self.k = k
 
     def __call__(self, truth: torch.Tensor, pred: torch.Tensor) -> Tuple[float, str]:

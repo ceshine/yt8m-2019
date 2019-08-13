@@ -6,7 +6,9 @@ from torch.optim import Optimizer
 
 class BaseLRScheduler(_LRScheduler):
     def __init__(self, optimizer, last_epoch=-1):
-        """Intentionally not calling super().__init__()"""
+        """Intentionally not calling super().__init__()
+           to skip optimizer type checking.
+        """
         if not isinstance(optimizer, Optimizer):
             flag = False
             try:
@@ -33,7 +35,6 @@ class BaseLRScheduler(_LRScheduler):
         self.last_epoch = last_epoch
 
         # New in PyTorch 1.1.0
-
         # Following https://github.com/pytorch/pytorch/issues/20124
         # We would like to ensure that `lr_scheduler.step()` is called after
         # `optimizer.step()`
@@ -51,6 +52,37 @@ class BaseLRScheduler(_LRScheduler):
 
         # Start from last_epoch
         self.step(last_epoch)
+
+
+class ExponentialLR(BaseLRScheduler):
+    """Exponentially increases the learning rate between two boundaries over
+    a number of iterations.
+
+    Mainly used by LR finders.
+    """
+
+    def __init__(self, optimizer, min_lr_ratio, total_epochs, last_epoch=-1):
+        """Initialize a scheduler.
+
+        Parameters
+        ----------
+        optimizer : Union[torch.optim.Optimizer, apex.fp16_utils.fp16_optimizer.FP16_Optimizer]
+        min_lr_ratio : float
+            min_lr_ratio * base_lr will be the starting learning rate.
+        total_epochs : int
+            the total number of "steps" in this run.
+        last_epoch : int, optional
+            the index of last epoch, by default -1.
+        """
+        assert min_lr_ratio < 1
+        self.min_lr_ratio = min_lr_ratio
+        self.total_epochs = total_epochs - 1  # start from zero
+        super(ExponentialLR, self).__init__(optimizer, last_epoch)
+
+    def get_lr(self):
+        current_epoch = self.last_epoch + 1
+        progress = 1 - current_epoch / self.total_epochs  # 1 to 0
+        return [base_lr * (self.min_lr_ratio) ** progress for base_lr in self.base_lrs]
 
 
 class TriangularLR(BaseLRScheduler):
@@ -88,24 +120,24 @@ class GradualWarmupScheduler(BaseLRScheduler):
         after_scheduler: after target_epoch, use this scheduler(eg. ReduceLROnPlateau)
     """
 
-    def __init__(self, optimizer, multiplier, total_epoch, after_scheduler=None):
+    def __init__(self, optimizer, multiplier, total_epochs, after_scheduler=None):
         self.multiplier = multiplier
         if self.multiplier <= 1.:
             raise ValueError('multiplier should be greater than 1.')
-        self.total_epoch = total_epoch
+        self.total_epochs = total_epochs
         self.after_scheduler = after_scheduler
         self.finished = False
         super().__init__(optimizer)
 
     def get_lr(self):
-        if self.last_epoch > self.total_epoch:
+        if self.last_epoch > self.total_epochs:
             if self.after_scheduler:
                 if not self.finished:
                     self.after_scheduler.base_lrs = self.base_lrs
                     self.finished = True
                 return self.after_scheduler.get_lr()
             return self.base_lrs
-        return [base_lr / self.multiplier * ((self.multiplier - 1.) * self.last_epoch / self.total_epoch + 1.) for base_lr in self.base_lrs]
+        return [base_lr / self.multiplier * ((self.multiplier - 1.) * self.last_epoch / self.total_epochs + 1.) for base_lr in self.base_lrs]
 
     def step(self, epoch=None):
         if self.finished and self.after_scheduler:

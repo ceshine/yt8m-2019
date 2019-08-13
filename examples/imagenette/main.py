@@ -14,6 +14,7 @@ from helperbot import (
     MixUpCallback, Top1Accuracy, TopKAccuracy
 )
 from helperbot.loss import MixUpSoftmaxLoss
+from helperbot.lr_finder import LRFinder
 
 from models import get_seresnet_model, get_densenet_model
 from dataset import TrainDataset, N_CLASSES, DATA_ROOT, build_dataframe_from_folder
@@ -60,9 +61,8 @@ class ImageClassificationBot(BaseBot):
         return x
 
 
-def train_from_scratch(args, model, train_loader, valid_loader, criterion):
-    n_steps = len(train_loader) * args.epochs
-    optimizer = WeightDecayOptimizerWrapper(
+def get_optimizer(model, lr):
+    return WeightDecayOptimizerWrapper(
         torch.optim.Adam(
             [
                 {
@@ -75,11 +75,16 @@ def train_from_scratch(args, model, train_loader, valid_loader, criterion):
                 }
             ],
             weight_decay=0,
-            lr=args.lr
+            lr=lr
         ),
         weight_decay=[1e-1, 0],
         change_with_lr=True
     )
+
+
+def train_from_scratch(args, model, train_loader, valid_loader, criterion):
+    n_steps = len(train_loader) * args.epochs
+    optimizer = get_optimizer(model, args.lr)
     if args.debug:
         print(
             "No decay:",
@@ -134,6 +139,26 @@ def train_from_scratch(args, model, train_loader, valid_loader, criterion):
     bot.remove_checkpoints(keep=0)
 
 
+def find_lr(args, model, train_loader, criterion):
+    n_steps = len(train_loader) * args.epochs
+    optimizer = get_optimizer(model, args.lr)
+    if args.amp:
+        if not APEX_AVAILABLE:
+            raise ValueError("Apex is not installed!")
+        model, optimizer = amp.initialize(
+            model, optimizer, opt_level=args.amp
+        )
+    finder = LRFinder(model, optimizer, criterion)
+    finder.range_test(
+        train_loader,
+        min_lr_ratio=1e-4,
+        total_steps=n_steps,
+        ma_decay=0.9, stop_ratio=3
+    )
+    finder.plot(skip_start=int(n_steps*0.1), filepath="lr_find.png")
+    print("Learning rate probing completed. Check `lr_find.png` for result.")
+
+
 def main():
     parser = argparse.ArgumentParser()
     arg = parser.add_argument
@@ -145,6 +170,7 @@ def main():
     arg('--arch', type=str, default='seresnext50')
     arg('--amp', type=str, default='')
     arg('--debug', action='store_true')
+    arg('--find-lr', action='store_true')
     args = parser.parse_args()
 
     train_dir = DATA_ROOT / 'train'
@@ -179,8 +205,10 @@ def main():
 
     print(f'{len(train_loader.dataset):,} items in train, '
           f'{len(valid_loader.dataset):,} in valid')
-
-    train_from_scratch(args, model, train_loader, valid_loader, criterion)
+    if args.find_lr:
+        find_lr(args, model, train_loader, criterion)
+    else:
+        train_from_scratch(args, model, train_loader, valid_loader, criterion)
 
 
 if __name__ == '__main__':
