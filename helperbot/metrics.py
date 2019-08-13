@@ -3,7 +3,7 @@ from typing import Tuple
 
 import torch
 import numpy as np
-from sklearn.metrics import fbeta_score, roc_auc_score
+from sklearn.metrics import fbeta_score, roc_auc_score, cohen_kappa_score
 from sklearn.exceptions import UndefinedMetricWarning
 
 
@@ -11,6 +11,18 @@ class Metric:
     name = "metric"
 
     def __call__(self, truth: torch.Tensor, pred: torch.Tensor) -> Tuple[float, str]:
+        """Calculate the metric from truth and prediction tensors
+
+        Parameters
+        ----------
+        truth : torch.Tensor
+        pred : torch.Tensor
+
+        Returns
+        -------
+        Tuple[float, str]
+            (metric value(to be minimized), formatted string)
+        """
         raise NotImplementedError()
 
 
@@ -65,8 +77,9 @@ class Top1Accuracy(Metric):
 
 
 class TopKAccuracy(Metric):
+    name = f"top_{k}_accuracy"
+
     def __init__(self, k=1):
-        self.name = f"top_{k}_accuracy"
         self.k = k
 
     def __call__(self, truth: torch.Tensor, pred: torch.Tensor) -> Tuple[float, str]:
@@ -78,3 +91,24 @@ class TopKAccuracy(Metric):
             ).view(-1).float().sum(0, keepdim=True)
             accuracy = correct.mul_(100.0 / truth.size(0)).item()
         return accuracy * -1, f"{accuracy:.2f}%"
+
+
+class CohenKappaScore(Metric):
+    name = "kappa"
+
+    def __call__(self, truth: torch.Tensor, pred: torch.Tensor) -> Tuple[float, str]:
+        if len(pred.size()) == 1 or pred.size(1) == 1:
+            regression = True
+        if regression:
+            score = cohen_kappa_score(
+                torch.round(pred.clamp(0, 4)).cpu().numpy(),
+                truth.cpu().numpy(),
+                weights='quadratic'
+            )
+        else:
+            score = cohen_kappa_score(
+                torch.argmax(pred, dim=1).cpu().numpy(),
+                truth.cpu().numpy(),
+                weights='quadratic'
+            )
+        return score * -1, f"{score * 100:.2f}"
