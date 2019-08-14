@@ -11,7 +11,8 @@ from torch.optim.lr_scheduler import CosineAnnealingLR
 from helperbot import (
     BaseBot, WeightDecayOptimizerWrapper, TriangularLR,
     GradualWarmupScheduler, LearningRateSchedulerCallback,
-    MixUpCallback, Top1Accuracy, TopKAccuracy
+    MixUpCallback, Top1Accuracy, TopKAccuracy,
+    MovingAverageStatsTrackerCallback
 )
 from helperbot.loss import MixUpSoftmaxLoss
 from helperbot.lr_finder import LRFinder
@@ -99,6 +100,10 @@ def train_from_scratch(args, model, train_loader, valid_loader, criterion):
         )
 
     callbacks = [
+        MovingAverageStatsTrackerCallback(
+            avg_window=len(train_loader) // 5,
+            log_interval=len(train_loader) // 6
+        ),
         LearningRateSchedulerCallback(
             # TriangularLR(
             #     optimizer, 100, ratio=4, steps_per_cycle=n_steps
@@ -119,14 +124,12 @@ def train_from_scratch(args, model, train_loader, valid_loader, criterion):
         val_loader=valid_loader, clip_grad=10.,
         optimizer=optimizer, echo=True,
         criterion=criterion,
-        avg_window=len(train_loader) // 5,
         callbacks=callbacks,
         pbar=True, use_tensorboard=True,
         use_amp=(args.amp != '')
     )
     bot.train(
         n_steps,
-        log_interval=len(train_loader) // 6,
         snapshot_interval=len(train_loader) // 2,
         # early_stopping_cnt=8,
         min_improv=1e-3,

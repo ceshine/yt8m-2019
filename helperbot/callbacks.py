@@ -1,5 +1,13 @@
+from collections import deque, defaultdict
+from typing import Dict, Tuple
+
 import torch
 import numpy as np
+
+__all__ = [
+    "Callback", "MixUpCallback", "LearningRateSchedulerCallback",
+    "StepwiseLinearPropertySchedulerCallback", "MovingAverageStatsTrackerCallback"
+]
 
 
 class Callback:
@@ -9,7 +17,13 @@ class Callback:
     def on_epoch_ends(self, bot, epoch):
         return
 
-    def on_step_ends(self, bot):
+    def on_eval_ends(self, bot, metrics):
+        return
+
+    def on_step_ends(self, bot, train_loss, train_weight):
+        return
+
+    def reset(self):
         return
 
 
@@ -61,12 +75,13 @@ class LearningRateSchedulerCallback(Callback):
         super().__init__()
         self.scheduler = scheduler
 
-    def on_step_ends(self, bot):
+    def on_step_ends(self, bot, *args, **kwargs):
         self.scheduler.step()
 
 
-class StepwiseLinearPropertyScheduler(Callback):
+class StepwiseLinearPropertySchedulerCallback(Callback):
     def __init__(self, target_obj, property_name, start_val, end_val, decay_start_step, decay):
+        super().__init__()
         self.target_obj = target_obj
         self.property_name = property_name
         self.start_val = start_val
@@ -74,7 +89,7 @@ class StepwiseLinearPropertyScheduler(Callback):
         self.decay_start_step = decay_start_step
         self.decay = decay
 
-    def on_step_ends(self, bot):
+    def on_step_ends(self, bot, *args, **kwargs):
         if bot.step % 200 == 0:
             bot.logger.info(
                 "%s %s %.4f",
@@ -91,3 +106,49 @@ class StepwiseLinearPropertyScheduler(Callback):
             ((bot.step - self.decay_start_step) * self.decay), 1
         )
         return self.start_val + change
+
+
+class MovingAverageStatsTrackerCallback(Callback):
+    """Keep moving average for training losses.
+
+    Raw values for evaluation stats.
+    """
+
+    def __init__(self, avg_window: int, log_interval: int):
+        super().__init__()
+        self.avg_window = avg_window
+        self.log_interval = log_interval
+        self.reset()
+
+    def on_step_ends(self, bot, train_loss, train_weight):
+        self.train_losses.append(train_loss)
+        self.train_weights.append(train_weight)
+        if bot.step % self.log_interval == 0:
+            train_loss_avg = np.average(
+                self.train_losses, weights=self.train_weights)
+            bot.logger.info(
+                "Step %s: train %.6f lr: %.3e",
+                bot.step, train_loss_avg, bot.optimizer.param_groups[-1]['lr'])
+            bot.logger.tb_scalars(
+                "lr", bot.optimizer.param_groups[0]['lr'], bot.step)
+            bot.logger.tb_scalars(
+                "loss", {"train": train_loss_avg}, bot.step)
+            self.train_logs.append(train_loss_avg)
+
+    def on_eval_ends(self, bot, metrics: Dict[str, Tuple[float, str]]):
+        self.metrics["step"].append(bot.step)
+        history_length = len(self.metrics["step"])
+        bot.logger.info(f"Metrics at step {bot.step}:")
+        for metric_name, (metric_value, metric_string) in metrics.items():
+            self.metrics[metric_name].append(metric_value)
+            assert history_length == len(
+                self.metrics[metric_name]), "Inconsistent metric found!"
+            bot.logger.info(f"{metric_name}: {metric_string}")
+            bot.logger.tb_scalars(
+                metric_name, {"val": metric_value}, bot.step)
+
+    def reset(self):
+        self.train_losses = deque(maxlen=self.avg_window)
+        self.train_weights = deque(maxlen=self.avg_window)
+        self.metrics = defaultdict(list)
+        self.train_logs = []

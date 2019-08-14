@@ -2,8 +2,7 @@ import os
 import random
 import logging
 from pathlib import Path
-from collections import deque
-from typing import List, Tuple, Iterable, Optional, Union, Sequence
+from typing import List, Tuple, Iterable, Union, Sequence
 from dataclasses import dataclass, field
 
 import numpy as np
@@ -12,7 +11,6 @@ from torch.nn.utils.clip_grad import clip_grad_norm_
 from tqdm import tqdm
 
 from .logger import Logger
-from .metrics import Metric
 
 try:
     from apex import amp
@@ -33,7 +31,6 @@ class BaseBot:
     """Base Interface to Model Training and Inference"""
     train_loader: Iterable
     val_loader: Iterable
-    avg_window: int
     criterion: object
     model: torch.nn.Module
     optimizer: torch.optim.Optimizer
@@ -46,14 +43,11 @@ class BaseBot:
     log_dir: Path = Path("./data/cache/logs/")
     log_level: int = logging.INFO
     loss_format: str = "%.8f"
-    metric_format: Optional[str] = None
     use_tensorboard: bool = False
     gradient_accumulation_steps: int = 1
     echo: bool = True
     step: int = 0
     best_performers: List[Tuple] = field(init=False)
-    train_losses: deque = field(init=False)
-    train_weights: deque = field(init=False)
     metrics: Sequence = ()
     callbacks: Sequence = ()
     monitor_metric: str = "loss"
@@ -67,10 +61,6 @@ class BaseBot:
         self.logger.info("SEED: %s", SEED)
         self.checkpoint_dir.mkdir(exist_ok=True, parents=True)
         self.best_performers: List[Tuple] = []
-        if self.metric_format is None:
-            self.metric_format = self.loss_format
-        self.train_losses = deque(maxlen=self.avg_window)
-        self.train_weights = deque(maxlen=self.avg_window)
         self.count_model_parameters()
 
     def count_model_parameters(self):
@@ -93,9 +83,6 @@ class BaseBot:
                 scaled_loss.backward()
         else:
             batch_loss.backward()
-        self.train_losses.append(
-            batch_loss.data.cpu().numpy() * self.gradient_accumulation_steps)
-        self.train_weights.append(input_tensors[0].size(self.batch_idx))
         if self.step % self.gradient_accumulation_steps == 0:
             if self.clip_grad > 0:
                 if not self.use_amp:
@@ -105,36 +92,24 @@ class BaseBot:
                         self.optimizer), self.clip_grad)
             self.optimizer.step()
             self.optimizer.zero_grad()
-
-    def log_progress(self):
-        train_loss_avg = np.average(
-            self.train_losses, weights=self.train_weights)
-        self.logger.info(
-            "Step %s: train %.6f lr: %.3e",
-            self.step, train_loss_avg, self.optimizer.param_groups[-1]['lr'])
-        self.logger.tb_scalars(
-            "lr", self.optimizer.param_groups[0]['lr'], self.step)
-        self.logger.tb_scalars(
-            "losses", {"train": train_loss_avg}, self.step)
+        return (
+            batch_loss.data.cpu().item() * self.gradient_accumulation_steps,
+            input_tensors[0].size(self.batch_idx)
+        )
 
     def snapshot(self):
         metrics = self.eval(self.val_loader)
+        self.run_eval_ends_callbacks(metrics)
         target_metric = metrics[self.monitor_metric]
-        metric_str = self.metric_format % target_metric
-        self.logger.info("Snapshot metric %s", metric_str)
-        self.logger.tb_scalars(
-            "losses", {"val": metrics["loss"]},  self.step)
-        self.logger.tb_scalars(
-            "monitor_metric", {"val": target_metric},  self.step)
         target_path = (
             self.checkpoint_dir /
-            "snapshot_{}_{}_{}.pth".format(self.name, metric_str, self.step))
+            "snapshot_{}_{}_{}.pth".format(self.name, target_metric[1], self.step))
         self.best_performers.append((target_metric, target_path, self.step))
         self.best_performers = sorted(self.best_performers, key=lambda x: x[0])
         self.logger.info("Saving checkpoint %s...", target_path)
         torch.save(self.model.state_dict(), target_path)
         assert Path(target_path).exists()
-        return target_metric
+        return target_metric[0]
 
     @staticmethod
     def extract_prediction(output):
@@ -151,16 +126,20 @@ class BaseBot:
                 self, input_tensors, targets)
         return input_tensors, targets
 
-    def run_step_ends_callbacks(self):
+    def run_step_ends_callbacks(self, train_loss, train_weight):
         for callback in self.callbacks:
-            callback.on_step_ends(self)
+            callback.on_step_ends(self, train_loss, train_weight)
 
     def run_epoch_ends_callbacks(self, epoch):
         for callback in self.callbacks:
             callback.on_epoch_ends(self, epoch)
 
+    def run_eval_ends_callbacks(self, metrics):
+        for callback in self.callbacks:
+            callback.on_eval_ends(self, metrics)
+
     def train(
-            self, n_steps, *, log_interval=50,
+            self, n_steps, *,
             early_stopping_cnt=0, min_improv=1e-4,
             snapshot_interval=2500, keep_n_snapshots=-1):
         self.optimizer.zero_grad()
@@ -188,21 +167,20 @@ class BaseBot:
                     input_tensors, targets = self.run_batch_inputs_callbacks(
                         input_tensors, targets)
                     self.step += 1
-                    self.train_one_step(input_tensors, targets)
-                    if self.step % log_interval == 0:
-                        self.log_progress()
+                    train_loss, train_weight = self.train_one_step(
+                        input_tensors, targets)
                     if ((callable(snapshot_interval) and snapshot_interval(self.step))
                             or (not callable(snapshot_interval) and self.step % snapshot_interval == 0)):
-                        loss = self.snapshot()
-                        if best_val_loss > loss + min_improv:
+                        val_loss = self.snapshot()
+                        if best_val_loss > val_loss + min_improv:
                             self.logger.info("New low\n")
-                            best_val_loss = loss
+                            best_val_loss = val_loss
                             wo_improvement = 0
                         else:
                             wo_improvement += 1
                         if keep_n_snapshots > 0:
                             self.remove_checkpoints(keep=keep_n_snapshots)
-                    self.run_step_ends_callbacks()
+                    self.run_step_ends_callbacks(train_loss, train_weight)
                     if early_stopping_cnt and wo_improvement > early_stopping_cnt:
                         return
                     if self.step >= n_steps:
@@ -210,7 +188,6 @@ class BaseBot:
                 self.run_epoch_ends_callbacks(epoch + 1)
         except KeyboardInterrupt:
             pass
-        self.log_progress()
 
     def eval(self, loader):
         """Warning: Only support datasets whose predictions and labels fit in memory together."""
@@ -230,13 +207,11 @@ class BaseBot:
                 preds.append(output.cpu())
                 ys.append(y_local.cpu())
         loss = np.average(losses, weights=weights)
-        self.logger.info("Criterion loss: {}".format(self.loss_format % loss))
-        metrics = {"loss": loss}
+        metrics = {"loss": (loss, self.loss_format % loss)}
         global_ys, global_preds = torch.cat(ys), torch.cat(preds)
         for metric in self.metrics:
             metric_loss, metric_string = metric(global_ys, global_preds)
-            metrics[metric.name] = metric_loss
-            self.logger.info(f"{metric.name}: {metric_string}")
+            metrics[metric.name] = (metric_loss, metric_string)
         return metrics
 
     def predict_batch(self, input_tensors):
