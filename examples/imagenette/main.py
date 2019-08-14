@@ -12,7 +12,8 @@ from helperbot import (
     BaseBot, WeightDecayOptimizerWrapper, TriangularLR,
     GradualWarmupScheduler, LearningRateSchedulerCallback,
     MixUpCallback, Top1Accuracy, TopKAccuracy,
-    MovingAverageStatsTrackerCallback
+    MovingAverageStatsTrackerCallback,
+    CheckpointCallback, EarlyStoppingCallback
 )
 from helperbot.loss import MixUpSoftmaxLoss
 from helperbot.lr_finder import LRFinder
@@ -49,17 +50,16 @@ def make_loader(args, ds_class, df: pd.DataFrame, image_transform, drop_last=Fal
 
 @dataclass
 class ImageClassificationBot(BaseBot):
-    checkpoint_dir: Path = CACHE_DIR / "model_cache/"
     log_dir: Path = MODEL_DIR / "logs/"
 
     def __post_init__(self):
         super().__post_init__()
         self.loss_format = "%.6f"
         self.metrics = (Top1Accuracy(), TopKAccuracy(k=3))
-        self.monitor_metric = "accuracy"
 
-    def extract_prediction(self, x):
-        return x
+    @staticmethod
+    def extract_prediction(output):
+        return output
 
 
 def get_optimizer(model, lr):
@@ -99,6 +99,11 @@ def train_from_scratch(args, model, train_loader, valid_loader, criterion):
             model, optimizer, opt_level=args.amp
         )
 
+    checkpoints = CheckpointCallback(
+        keep_n_checkpoints=1,
+        checkpoint_dir=CACHE_DIR / "model_cache/",
+        monitor_metric="accuracy"
+    )
     callbacks = [
         MovingAverageStatsTrackerCallback(
             avg_window=len(train_loader) // 5,
@@ -109,11 +114,17 @@ def train_from_scratch(args, model, train_loader, valid_loader, criterion):
             #     optimizer, 100, ratio=4, steps_per_cycle=n_steps
             # )
             GradualWarmupScheduler(
-                optimizer, 100, len(train_loader),
+                optimizer, 100, min(int(n_steps*0.25), len(train_loader)),
                 after_scheduler=CosineAnnealingLR(
-                    optimizer, n_steps - len(train_loader)
+                    optimizer,
+                    n_steps - min(int(n_steps*0.25), len(train_loader)),
                 )
             )
+        ),
+        checkpoints,
+        EarlyStoppingCallback(
+            patience=3, min_improv=1e-2,
+            monitor_metric="accuracy"
         )
     ]
     if args.mixup_alpha:
@@ -130,16 +141,12 @@ def train_from_scratch(args, model, train_loader, valid_loader, criterion):
     )
     bot.train(
         n_steps,
-        snapshot_interval=len(train_loader) // 2,
-        # early_stopping_cnt=8,
-        min_improv=1e-3,
-        keep_n_snapshots=1
+        checkpoint_interval=len(train_loader) // 2
     )
-    bot.remove_checkpoints(keep=1)
-    bot.load_model(bot.best_performers[0][1])
+    bot.load_model(checkpoints.best_performers[0][1])
     torch.save(bot.model.state_dict(), CACHE_DIR /
                f"final_weights.pth")
-    bot.remove_checkpoints(keep=0)
+    checkpoints.remove_checkpoints(keep=0)
 
 
 def find_lr(args, model, train_loader, criterion):

@@ -1,26 +1,30 @@
 from collections import deque, defaultdict
-from typing import Dict, Tuple
+from typing import Dict, Tuple, List
+from pathlib import Path
 
 import torch
 import numpy as np
 
+from .bot import BaseBot, StopTraining
+
 __all__ = [
     "Callback", "MixUpCallback", "LearningRateSchedulerCallback",
-    "StepwiseLinearPropertySchedulerCallback", "MovingAverageStatsTrackerCallback"
+    "StepwiseLinearPropertySchedulerCallback", "MovingAverageStatsTrackerCallback",
+    "CheckpointCallback", "EarlyStoppingCallback"
 ]
 
 
 class Callback:
-    def on_batch_inputs(self, bot, input_tensors, targets):
+    def on_batch_inputs(self, bot: BaseBot, input_tensors: torch.Tensor, targets: torch.Tensor):
         return input_tensors, targets
 
-    def on_epoch_ends(self, bot, epoch):
+    def on_epoch_ends(self, bot: BaseBot, epoch: int):
         return
 
-    def on_eval_ends(self, bot, metrics):
+    def on_eval_ends(self, bot: BaseBot, metrics: Dict[str, Tuple[float, str]]):
         return
 
-    def on_step_ends(self, bot, train_loss, train_weight):
+    def on_step_ends(self, bot: BaseBot, train_loss: float, train_weight: int):
         return
 
     def reset(self):
@@ -38,7 +42,7 @@ class MixUpCallback(Callback):
         self.alpha = alpha
         self.softmax_target = softmax_target
 
-    def on_batch_inputs(self, bot, input_tensors, targets):
+    def on_batch_inputs(self, bot: BaseBot, input_tensors, targets):
         batch = input_tensors[0]
         permuted_idx = torch.randperm(batch.size(0)).to(batch.device)
         lambd = np.random.beta(self.alpha, self.alpha, batch.size(0))
@@ -75,7 +79,7 @@ class LearningRateSchedulerCallback(Callback):
         super().__init__()
         self.scheduler = scheduler
 
-    def on_step_ends(self, bot, *args, **kwargs):
+    def on_step_ends(self, bot: BaseBot, train_loss, train_weight):
         self.scheduler.step()
 
 
@@ -89,7 +93,7 @@ class StepwiseLinearPropertySchedulerCallback(Callback):
         self.decay_start_step = decay_start_step
         self.decay = decay
 
-    def on_step_ends(self, bot, *args, **kwargs):
+    def on_step_ends(self, bot: BaseBot, train_loss, train_weight):
         if bot.step % 200 == 0:
             bot.logger.info(
                 "%s %s %.4f",
@@ -120,7 +124,7 @@ class MovingAverageStatsTrackerCallback(Callback):
         self.log_interval = log_interval
         self.reset()
 
-    def on_step_ends(self, bot, train_loss, train_weight):
+    def on_step_ends(self, bot: BaseBot, train_loss, train_weight):
         self.train_losses.append(train_loss)
         self.train_weights.append(train_weight)
         if bot.step % self.log_interval == 0:
@@ -135,7 +139,7 @@ class MovingAverageStatsTrackerCallback(Callback):
                 "loss", {"train": train_loss_avg}, bot.step)
             self.train_logs.append(train_loss_avg)
 
-    def on_eval_ends(self, bot, metrics: Dict[str, Tuple[float, str]]):
+    def on_eval_ends(self, bot: BaseBot, metrics: Dict[str, Tuple[float, str]]):
         self.metrics["step"].append(bot.step)
         history_length = len(self.metrics["step"])
         bot.logger.info(f"Metrics at step {bot.step}:")
@@ -152,3 +156,66 @@ class MovingAverageStatsTrackerCallback(Callback):
         self.train_weights = deque(maxlen=self.avg_window)
         self.metrics = defaultdict(list)
         self.train_logs = []
+
+
+class CheckpointCallback(Callback):
+    """Save and manage checkpoints.
+    """
+
+    def __init__(
+            self, keep_n_checkpoints: int = 1,
+            checkpoint_dir: Path = Path("./data/cache/model_cache/"),
+            monitor_metric: str = "loss"):
+        super().__init__()
+        self.keep_n_checkpoints = keep_n_checkpoints
+        self.checkpoint_dir = checkpoint_dir
+        self.monitor_metric = monitor_metric
+        self.best_performers: List[Tuple[float, Path, int]] = []
+        self.checkpoint_dir.mkdir(exist_ok=True, parents=True)
+
+    def on_eval_ends(self, bot: BaseBot, metrics: Dict[str, Tuple[float, str]]):
+        target_value, target_string = metrics[self.monitor_metric]
+        target_path = (
+            self.checkpoint_dir /
+            "ckpt_{}_{}_{}.pth".format(bot.name, target_string, bot.step))
+        bot.logger.debug("Saving checkpoint %s...", target_path)
+        torch.save(bot.model.state_dict(), target_path)
+        assert Path(target_path).exists()
+        self.best_performers.append((target_value, target_path, bot.step))
+        self.remove_checkpoints(keep=self.keep_n_checkpoints)
+
+    def remove_checkpoints(self, keep):
+        self.best_performers = sorted(self.best_performers, key=lambda x: x[0])
+        for checkpoint in np.unique([
+                x[1] for x in self.best_performers[keep:]]):
+            Path(checkpoint).unlink()
+        self.best_performers = self.best_performers[:keep]
+
+    def reset(self):
+        self.remove_checkpoints(0)
+
+
+class EarlyStoppingCallback(Callback):
+    def __init__(self, patience: int, min_improv: float, monitor_metric: str = "loss"):
+        super().__init__()
+        self.patience = patience
+        self.min_improv = min_improv
+        self.monitor_metric = monitor_metric
+        self.reset()
+
+    def on_eval_ends(self, bot: BaseBot, metrics: Dict[str, Tuple[float, str]]):
+        target_value, _ = metrics[self.monitor_metric]
+        if target_value < self.best:
+            bot.logger.info(
+                "New low: %.6f improvement\n",
+                self.best - target_value)
+            self.best = target_value
+            self.no_improv = 0
+        else:
+            self.no_improv += 1
+        if self.no_improv > self.patience:
+            raise StopTraining()
+
+    def reset(self):
+        self.no_improv = 0
+        self.best = float('Inf')

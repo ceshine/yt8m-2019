@@ -26,6 +26,10 @@ torch.manual_seed(SEED)
 torch.cuda.manual_seed(SEED)
 
 
+class StopTraining(Exception):
+    pass
+
+
 @dataclass
 class BaseBot:
     """Base Interface to Model Training and Inference"""
@@ -38,7 +42,6 @@ class BaseBot:
     use_amp: bool = False
     clip_grad: float = 0
     batch_idx: int = 0
-    checkpoint_dir: Path = Path("./data/cache/model_cache/")
     device: Union[str, torch.device] = "cuda:0"
     log_dir: Path = Path("./data/cache/logs/")
     log_level: int = logging.INFO
@@ -47,10 +50,8 @@ class BaseBot:
     gradient_accumulation_steps: int = 1
     echo: bool = True
     step: int = 0
-    best_performers: List[Tuple] = field(init=False)
     metrics: Sequence = ()
     callbacks: Sequence = ()
-    monitor_metric: str = "loss"
     pbar: bool = False
 
     def __post_init__(self):
@@ -59,8 +60,6 @@ class BaseBot:
             self.name, str(self.log_dir), self.log_level,
             use_tensorboard=self.use_tensorboard, echo=self.echo)
         self.logger.info("SEED: %s", SEED)
-        self.checkpoint_dir.mkdir(exist_ok=True, parents=True)
-        self.best_performers: List[Tuple] = []
         self.count_model_parameters()
 
     def count_model_parameters(self):
@@ -97,20 +96,6 @@ class BaseBot:
             input_tensors[0].size(self.batch_idx)
         )
 
-    def snapshot(self):
-        metrics = self.eval(self.val_loader)
-        self.run_eval_ends_callbacks(metrics)
-        target_metric = metrics[self.monitor_metric]
-        target_path = (
-            self.checkpoint_dir /
-            "snapshot_{}_{}_{}.pth".format(self.name, target_metric[1], self.step))
-        self.best_performers.append((target_metric, target_path, self.step))
-        self.best_performers = sorted(self.best_performers, key=lambda x: x[0])
-        self.logger.info("Saving checkpoint %s...", target_path)
-        torch.save(self.model.state_dict(), target_path)
-        assert Path(target_path).exists()
-        return target_metric[0]
-
     @staticmethod
     def extract_prediction(output):
         """Assumes single output"""
@@ -138,16 +123,9 @@ class BaseBot:
         for callback in self.callbacks:
             callback.on_eval_ends(self, metrics)
 
-    def train(
-            self, n_steps, *,
-            early_stopping_cnt=0, min_improv=1e-4,
-            snapshot_interval=2500, keep_n_snapshots=-1):
+    def train(self, n_steps, *, checkpoint_interval):
         self.optimizer.zero_grad()
-        if self.val_loader is not None:
-            best_val_loss = 100
         epoch = 0
-        wo_improvement = 0
-        self.best_performers = []
         self.logger.info(
             "Optimizer {}".format(str(self.optimizer)))
         try:
@@ -169,24 +147,16 @@ class BaseBot:
                     self.step += 1
                     train_loss, train_weight = self.train_one_step(
                         input_tensors, targets)
-                    if ((callable(snapshot_interval) and snapshot_interval(self.step))
-                            or (not callable(snapshot_interval) and self.step % snapshot_interval == 0)):
-                        val_loss = self.snapshot()
-                        if best_val_loss > val_loss + min_improv:
-                            self.logger.info("New low\n")
-                            best_val_loss = val_loss
-                            wo_improvement = 0
-                        else:
-                            wo_improvement += 1
-                        if keep_n_snapshots > 0:
-                            self.remove_checkpoints(keep=keep_n_snapshots)
+                    if (
+                        (callable(checkpoint_interval) and checkpoint_interval(self.step)) or
+                        (not callable(checkpoint_interval) and
+                         self.step % checkpoint_interval == 0)
+                    ):
+                        metrics = self.eval(self.val_loader)
+                        self.run_eval_ends_callbacks(metrics)
                     self.run_step_ends_callbacks(train_loss, train_weight)
-                    if early_stopping_cnt and wo_improvement > early_stopping_cnt:
-                        return
-                    if self.step >= n_steps:
-                        break
                 self.run_epoch_ends_callbacks(epoch + 1)
-        except KeyboardInterrupt:
+        except (KeyboardInterrupt, StopTraining):
             pass
 
     def eval(self, loader):
@@ -219,16 +189,16 @@ class BaseBot:
         tmp = self.model(*input_tensors)
         return self.extract_prediction(tmp)
 
-    def predict_avg(self, loader, k=8):
-        assert len(self.best_performers) >= k
-        preds = []
-        # Iterating through checkpoints
-        for i in range(k):
-            target = self.best_performers[i][1]
-            self.logger.info("Loading %s", format(target))
-            self.load_model(target)
-            preds.append(self.predict(loader).unsqueeze(0))
-        return torch.cat(preds, dim=0).mean(dim=0)
+    # def predict_avg(self, loader, k=8):
+    #     assert len(self.best_performers) >= k
+    #     preds = []
+    #     # Iterating through checkpoints
+    #     for i in range(k):
+    #         target = self.best_performers[i][1]
+    #         self.logger.info("Loading %s", format(target))
+    #         self.load_model(target)
+    #         preds.append(self.predict(loader).unsqueeze(0))
+    #     return torch.cat(preds, dim=0).mean(dim=0)
 
     def predict(self, loader, *, return_y=False):
         self.model.eval()
@@ -244,11 +214,6 @@ class BaseBot:
             y_global = torch.cat(y_global, dim=0)
             return outputs, y_global.cpu()
         return outputs
-
-    def remove_checkpoints(self, keep=0):
-        for checkpoint in np.unique([x[1] for x in self.best_performers[keep:]]):
-            Path(checkpoint).unlink()
-        self.best_performers = self.best_performers[:keep]
 
     def load_model(self, target_path):
         self.model.load_state_dict(torch.load(target_path))
