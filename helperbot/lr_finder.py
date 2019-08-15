@@ -206,7 +206,7 @@ class LRFinder(object):
             losses = losses[skip_start:-skip_end]
 
         # Plot loss as a function of the learning rate
-        plt.figure(figsize=(10, 4))
+        plt.figure(figsize=(10, 5))
         plt.plot(lrs, losses)
         if log_lr:
             plt.xscale("log")

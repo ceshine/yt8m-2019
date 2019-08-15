@@ -151,6 +151,7 @@ class BaseBot:
                     self.step += 1
                     train_loss, train_weight = self.train_one_step(
                         input_tensors, targets)
+                    self.run_step_ends_callbacks(train_loss, train_weight)
                     if (
                         (callable(checkpoint_interval) and checkpoint_interval(self.step)) or
                         (not callable(checkpoint_interval) and
@@ -158,7 +159,6 @@ class BaseBot:
                     ):
                         metrics = self.eval(self.val_loader)
                         self.run_eval_ends_callbacks(metrics)
-                    self.run_step_ends_callbacks(train_loss, train_weight)
                 self.run_epoch_ends_callbacks(epoch + 1)
         except (KeyboardInterrupt, StopTraining):
             pass
