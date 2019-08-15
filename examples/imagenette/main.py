@@ -20,7 +20,7 @@ from helperbot.lr_finder import LRFinder
 
 from models import get_seresnet_model, get_densenet_model, get_efficientnet_model
 from dataset import TrainDataset, N_CLASSES, DATA_ROOT, build_dataframe_from_folder
-from transforms import train_transform, test_transform
+from transforms import get_train_transform, get_test_transform
 
 try:
     from apex import amp
@@ -179,6 +179,7 @@ def main():
     arg('--mixup-alpha', type=float, default=0)
     arg('--arch', type=str, default='seresnext50')
     arg('--amp', type=str, default='')
+    arg('--size', type=int, default=192)
     arg('--debug', action='store_true')
     arg('--find-lr', action='store_true')
     args = parser.parse_args()
@@ -210,6 +211,9 @@ def main():
 
     df_train, class_map = build_dataframe_from_folder(train_dir)
     df_valid = build_dataframe_from_folder(valid_dir, class_map)
+
+    train_transform = get_train_transform(int(args.size*1.25), args.size)
+    test_transform = get_test_transform(int(args.size*1.25), args.size)
 
     train_loader = make_loader(
         args, TrainDataset, df_train, train_transform, drop_last=True, shuffle=True)
