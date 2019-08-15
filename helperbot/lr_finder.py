@@ -77,7 +77,7 @@ class LRFinder(object):
 
     @staticmethod
     def extract_prediction(output):
-        return output[:, 0]
+        return output
 
     def reset(self):
         """Restores the model and optimizer to their initial states."""

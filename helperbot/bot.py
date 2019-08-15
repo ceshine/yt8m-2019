@@ -98,8 +98,8 @@ class BaseBot:
 
     @staticmethod
     def extract_prediction(output):
-        """Assumes single output"""
-        return output[:, 0]
+        """Assumes multiple outputs"""
+        return output
 
     @staticmethod
     def transform_prediction(prediction):
