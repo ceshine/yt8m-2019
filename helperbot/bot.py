@@ -159,6 +159,8 @@ class BaseBot:
                     ):
                         metrics = self.eval(self.val_loader)
                         self.run_eval_ends_callbacks(metrics)
+                    if self.step >= n_steps:
+                        break
                 self.run_epoch_ends_callbacks(epoch + 1)
         except (KeyboardInterrupt, StopTraining):
             pass
