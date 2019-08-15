@@ -75,6 +75,10 @@ class LRFinder(object):
         # If device is None, use the same as the model
         self.device = device if device else self.model_device
 
+    @staticmethod
+    def extract_prediction(output):
+        return output[:, 0]
+
     def reset(self):
         """Restores the model and optimizer to their initial states."""
         self.model.load_state_dict(self.state_cacher.retrieve('model'))
@@ -158,7 +162,7 @@ class LRFinder(object):
 
         # Forward pass
         self.optimizer.zero_grad()
-        outputs = self.model(*inputs)
+        outputs = self.extract_prediction(self.model(*inputs))
         loss = self.criterion(outputs, labels)
 
         # Backward pass
