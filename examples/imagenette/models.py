@@ -5,6 +5,7 @@ import numpy as np
 import pretrainedmodels
 from torch import nn
 from torch.nn import functional as F
+from efficientnet_pytorch import EfficientNet
 
 
 class Flatten(nn.Module):
@@ -75,6 +76,16 @@ def get_densenet_model(arch: str = "densenet169", n_classes: int = 10, pretraine
         init_weights(model[-1])
         return model
     return init_weights(model)
+
+
+def get_efficientnet_model(arch: str = "efficientnet-b3", n_classes: int = 10, pretrained: bool = False):
+    if pretrained:
+        model = EfficientNet.from_pretrained(arch)
+    else:
+        model = EfficientNet.from_name(arch)
+    num_features = model._fc.in_features
+    model._fc = nn.Linear(num_features, n_classes)
+    return model
 
 
 class Swish(nn.Module):

@@ -18,7 +18,7 @@ from helperbot import (
 from helperbot.loss import MixUpSoftmaxLoss
 from helperbot.lr_finder import LRFinder
 
-from models import get_seresnet_model, get_densenet_model
+from models import get_seresnet_model, get_densenet_model, get_efficientnet_model
 from dataset import TrainDataset, N_CLASSES, DATA_ROOT, build_dataframe_from_folder
 from transforms import train_transform, test_transform
 
@@ -197,6 +197,9 @@ def main():
             n_classes=N_CLASSES, pretrained=False)
     elif args.arch.startswith("densenet"):
         model = get_densenet_model(arch=args.arch)
+    elif args.arch.startswith("efficientnet"):
+        model = get_efficientnet_model(
+            arch=args.arch, n_classes=1, pretrained=False)
     else:
         raise ValueError("No such model")
     if use_cuda:
