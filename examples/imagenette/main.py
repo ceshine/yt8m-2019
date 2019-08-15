@@ -199,7 +199,7 @@ def main():
         model = get_densenet_model(arch=args.arch)
     elif args.arch.startswith("efficientnet"):
         model = get_efficientnet_model(
-            arch=args.arch, n_classes=1, pretrained=False)
+            arch=args.arch, pretrained=False)
     else:
         raise ValueError("No such model")
     if use_cuda:
