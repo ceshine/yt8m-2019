@@ -18,6 +18,9 @@ class Callback:
     def on_batch_inputs(self, bot: BaseBot, input_tensors: torch.Tensor, targets: torch.Tensor):
         return input_tensors, targets
 
+    def on_train_ends(self, bot: BaseBot):
+        return
+
     def on_epoch_ends(self, bot: BaseBot, epoch: int):
         return
 
@@ -144,12 +147,26 @@ class MovingAverageStatsTrackerCallback(Callback):
         history_length = len(self.metrics["step"])
         bot.logger.info(f"Metrics at step {bot.step}:")
         for metric_name, (metric_value, metric_string) in metrics.items():
-            self.metrics[metric_name].append(metric_value)
+            self.metrics[metric_name].append((metric_value, metric_string))
             assert history_length == len(
                 self.metrics[metric_name]), "Inconsistent metric found!"
             bot.logger.info(f"{metric_name}: {metric_string}")
             bot.logger.tb_scalars(
                 metric_name, {"val": metric_value}, bot.step)
+
+    def on_train_ends(self, bot: BaseBot):
+        if self.metrics["step"]:
+            bot.logger.info("Training finished. Best step(s):")
+            for metric_name, metric_values in self.metrics.items():
+                if metric_name == "step":
+                    continue
+                best_idx = np.argmin(
+                    np.array([x[0] for x in metric_values]))
+                bot.logger.info(
+                    "%s: %s @ step %d",
+                    metric_name, metric_values[best_idx][1],
+                    self.metrics["step"][best_idx]
+                )
 
     def reset(self):
         self.train_losses = deque(maxlen=self.avg_window)

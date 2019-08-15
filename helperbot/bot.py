@@ -115,6 +115,10 @@ class BaseBot:
         for callback in self.callbacks:
             callback.on_step_ends(self, train_loss, train_weight)
 
+    def run_train_ends_callbacks(self):
+        for callback in self.callbacks:
+            callback.on_train_ends(self)
+
     def run_epoch_ends_callbacks(self, epoch):
         for callback in self.callbacks:
             callback.on_epoch_ends(self, epoch)
@@ -158,6 +162,8 @@ class BaseBot:
                 self.run_epoch_ends_callbacks(epoch + 1)
         except (KeyboardInterrupt, StopTraining):
             pass
+        finally:
+            self.run_train_ends_callbacks()
 
     def eval(self, loader):
         """Warning: Only support datasets whose predictions and labels fit in memory together."""
