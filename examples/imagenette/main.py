@@ -123,7 +123,7 @@ def train_from_scratch(args, model, train_loader, valid_loader, criterion):
         ),
         checkpoints,
         EarlyStoppingCallback(
-            patience=3, min_improv=1e-2,
+            patience=6, min_improv=1e-2,
             monitor_metric="accuracy"
         )
     ]
