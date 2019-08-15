@@ -205,7 +205,7 @@ class EarlyStoppingCallback(Callback):
 
     def on_eval_ends(self, bot: BaseBot, metrics: Dict[str, Tuple[float, str]]):
         target_value, _ = metrics[self.monitor_metric]
-        if target_value < self.best:
+        if target_value < self.best - self.min_improv:
             bot.logger.info(
                 "New low: %.6f improvement\n",
                 self.best - target_value)
