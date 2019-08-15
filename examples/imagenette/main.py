@@ -163,7 +163,8 @@ def find_lr(args, model, train_loader, criterion):
         train_loader,
         min_lr_ratio=1e-4,
         total_steps=n_steps,
-        ma_decay=0.8, stop_ratio=3
+        ma_decay=0.8, stop_ratio=3,
+        linear_schedule=False
     )
     finder.plot(skip_start=int(n_steps*0.1), filepath="lr_find.png")
     print("Learning rate probing completed. Check `lr_find.png` for result.")

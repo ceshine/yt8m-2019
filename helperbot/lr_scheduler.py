@@ -54,6 +54,38 @@ class BaseLRScheduler(_LRScheduler):
         self.step(last_epoch)
 
 
+class LinearLR(_LRScheduler):
+    """Linearly increases the learning rate between two boundaries over a number of
+    iterations.
+    """
+
+    def __init__(self, optimizer, min_lr_ratio, total_epochs, last_epoch=-1):
+        """Initialize a scheduler.
+
+        Parameters
+        ----------
+        optimizer : Union[torch.optim.Optimizer, apex.fp16_utils.fp16_optimizer.FP16_Optimizer]
+        min_lr_ratio : float
+            min_lr_ratio * base_lr will be the starting learning rate.
+        total_epochs : int
+            the total number of "steps" in this run.
+        last_epoch : int, optional
+            the index of last epoch, by default -1.
+        """
+        assert min_lr_ratio < 1
+        self.min_lr_ratio = min_lr_ratio
+        self.total_epochs = total_epochs - 1  # start from zero
+        super(LinearLR, self).__init__(optimizer, last_epoch)
+
+    def get_lr(self):
+        current_epoch = self.last_epoch + 1
+        progress = 1 - current_epoch / self.total_epochs  # 1 to 0
+        return [
+            base_lr - progress * (base_lr - self.min_lr_ratio * base_lr)
+            for base_lr in self.base_lrs
+        ]
+
+
 class ExponentialLR(BaseLRScheduler):
     """Exponentially increases the learning rate between two boundaries over
     a number of iterations.

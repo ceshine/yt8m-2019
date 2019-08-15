@@ -11,7 +11,7 @@ import torch.nn as nn
 from tqdm.autonotebook import tqdm
 import matplotlib.pyplot as plt
 
-from .lr_scheduler import ExponentialLR
+from .lr_scheduler import ExponentialLR, LinearLR
 
 
 class LRFinder(object):
@@ -87,7 +87,7 @@ class LRFinder(object):
 
     def range_test(
             self, train_loader: Iterable, min_lr_ratio: float, total_steps: int,
-            ma_decay: float = 0.95, stop_ratio: float = 10):
+            ma_decay: float = 0.95, stop_ratio: float = 10, linear_schedule: bool = False):
         """Performs the learning rate range test.
 
             Parameters
@@ -112,9 +112,14 @@ class LRFinder(object):
         self.model.to(self.device)
 
         # Initialize the proper learning rate policy
-        lr_scheduler = ExponentialLR(
-            self.optimizer, min_lr_ratio=min_lr_ratio,
-            total_epochs=total_steps)
+        if linear_schedule:
+            lr_scheduler = LinearLR(
+                self.optimizer, min_lr_ratio=min_lr_ratio,
+                total_epochs=total_steps)
+        else:
+            lr_scheduler = ExponentialLR(
+                self.optimizer, min_lr_ratio=min_lr_ratio,
+                total_epochs=total_steps)
 
         assert ma_decay > 0 and ma_decay < 1, "ma_decay is outside the range (0, 1)"
 
