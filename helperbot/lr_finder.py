@@ -138,7 +138,7 @@ class LRFinder(object):
 
             # Update the learning rate
             lr_scheduler.step()
-            self.history["lr"].append(lr_scheduler.get_lr()[0])
+            self.history["lr"].append(lr_scheduler.get_lr()[-1])
 
             # Track the best loss and smooth it if smooth_f is specified
             if step == 0:
