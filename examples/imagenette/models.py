@@ -29,7 +29,7 @@ def get_head(nf: int, n_classes):
 
 
 def init_weights(model):
-    for i, module in enumerate(model):
+    for module in model.children():
         if isinstance(module, (nn.BatchNorm1d, nn.BatchNorm2d)):
             if module.weight is not None:
                 nn.init.uniform_(module.weight)
@@ -38,7 +38,7 @@ def init_weights(model):
         if isinstance(module, (nn.Linear, nn.Conv2d, nn.Conv1d)):
             if getattr(module, "weight_v", None) is not None:
                 print("Initing linear with weight normalization")
-                assert model[i].weight_g is not None
+                assert module.weight_g is not None
             else:
                 nn.init.kaiming_normal_(module.weight)
                 print("Initing linear")

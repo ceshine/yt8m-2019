@@ -8,8 +8,14 @@ from typing import Optional, Union, Iterable
 
 import torch
 import torch.nn as nn
+from torch.nn.utils.clip_grad import clip_grad_norm_
 from tqdm.autonotebook import tqdm
 import matplotlib.pyplot as plt
+try:
+    from apex import amp
+    APEX_AVAILABLE = True
+except ModuleNotFoundError:
+    APEX_AVAILABLE = False
 
 from .lr_scheduler import ExponentialLR, LinearLR
 
@@ -33,7 +39,7 @@ class LRFinder(object):
     def __init__(
             self, model: nn.Module, optimizer: torch.optim.Optimizer, criterion: nn.Module,
             device: Optional[Union[str, torch.device]] = None, memory_cache: bool = True,
-            cache_dir: Optional[str] = None):
+            cache_dir: Optional[str] = None, use_amp: bool = False, clip_grad: float = 0):
         """Initialize LR Finder
 
         Parameters
@@ -56,6 +62,10 @@ class LRFinder(object):
         cache_dir : Optional[str], optional
             path for storing temporary files. If no path is specified, system-wide temporary
             directory is used. Notice that this parameter will be ignored if `memory_cache` is True.
+        use_amp: bool, optional
+            Use Apex AMP.
+        clip_grad: float, optional
+            Clipping gradient norms.
         """
         self.model = model
         self.optimizer = optimizer
@@ -64,6 +74,9 @@ class LRFinder(object):
         self.best_loss = None
         self.memory_cache = memory_cache
         self.cache_dir = cache_dir
+        self.use_amp = use_amp
+        self.clip_grad = clip_grad
+        assert (self.use_amp and APEX_AVAILABLE) or (not self.use_amp)
 
         # Save the original state of the model and optimizer so they can be restored if
         # needed
@@ -171,7 +184,18 @@ class LRFinder(object):
         loss = self.criterion(outputs, labels)
 
         # Backward pass
-        loss.backward()
+        if self.use_amp:
+            with amp.scale_loss(loss, self.optimizer) as scaled_loss:
+                scaled_loss.backward()
+        else:
+            loss.backward()
+        if self.clip_grad > 0:
+            if not self.use_amp:
+                clip_grad_norm_(self.model.parameters(), self.clip_grad)
+            else:
+                clip_grad_norm_(amp.master_params(
+                    self.optimizer), self.clip_grad)
+
         self.optimizer.step()
 
         return loss.item()
