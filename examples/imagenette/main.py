@@ -158,15 +158,16 @@ def find_lr(args, model, train_loader, criterion):
         model, optimizer = amp.initialize(
             model, optimizer, opt_level=args.amp
         )
-    finder = LRFinder(model, optimizer, criterion)
+    finder = LRFinder(
+        model, optimizer, criterion,
+        clip_grad=10.,
+        use_amp=(args.amp != ''))
     finder.range_test(
         train_loader,
         min_lr_ratio=1e-4,
         total_steps=n_steps,
         ma_decay=0.95, stop_ratio=3,
-        linear_schedule=False,
-        clip_grad=10.,
-        use_amp=(args.amp != '')
+        linear_schedule=False
     )
     finder.plot(skip_start=int(n_steps*0.1), filepath="lr_find.png")
     print("Learning rate probing completed. Check `lr_find.png` for result.")
