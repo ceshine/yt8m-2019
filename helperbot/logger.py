@@ -10,8 +10,8 @@ class Logger:
         date_str = datetime.now().strftime('%Y%m%d_%H%M')
         log_file = 'log_{}.txt'.format(date_str)
         formatter = logging.Formatter(
-            '[[%(asctime)s]] %(message)s',
-            datefmt='%m/%d/%Y %I:%M:%S %p'
+            '[%(levelname)s][%(asctime)s] %(message)s',
+            datefmt='%m/%d/%Y %H:%M:%S'
         )
         self.logger = logging.getLogger("bot")
         # Remove all existing handlers
