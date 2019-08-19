@@ -61,6 +61,11 @@ class BaseBot:
             use_tensorboard=self.use_tensorboard, echo=self.echo)
         self.logger.info("SEED: %s", SEED)
         self.count_model_parameters()
+        if APEX_AVAILABLE:
+            if not self.use_amp and (hasattr(amp._amp_state, "opt_properties")):
+                self.logger.warning(
+                    "AMP initialization detected but use_amp = False. "
+                    "Did you forget to set `use_amp = True`?")
 
     def count_model_parameters(self):
         self.logger.info(
