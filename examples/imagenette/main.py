@@ -114,10 +114,10 @@ def train_from_scratch(args, model, train_loader, valid_loader, criterion):
             #     optimizer, 100, ratio=4, steps_per_cycle=n_steps
             # )
             GradualWarmupScheduler(
-                optimizer, 100, min(int(n_steps*0.25), len(train_loader)),
+                optimizer, 100, int(n_steps*0.25),
                 after_scheduler=CosineAnnealingLR(
                     optimizer,
-                    n_steps - min(int(n_steps*0.25), len(train_loader)),
+                    n_steps - int(n_steps*0.25),
                 )
             )
         ),
