@@ -83,8 +83,29 @@ def get_optimizer(model, lr):
     )
 
 
+def resume_training(args, model, train_loader, valid_loader):
+    optimizer = get_optimizer(model, args.lr)
+    bot = ImageClassificationBot.load_checkpoint(
+        args.from_checkpoint, train_loader, valid_loader,
+        model, optimizer
+    )
+    checkpoints = None
+    for callback in bot.callbacks:
+        if isinstance(callback, CheckpointCallback):
+            checkpoints = callback
+            break
+    # We could set the checkpoints
+    checkpoints.reset(ignore_previous=True)
+    bot.train(checkpoint_interval=len(train_loader) // 4)
+    if checkpoints:
+        bot.load_model(checkpoints.best_performers[0][1])
+        torch.save(bot.model.state_dict(), CACHE_DIR /
+                   f"final_weights.pth")
+        checkpoints.remove_checkpoints(keep=0)
+
+
 def train_from_scratch(args, model, train_loader, valid_loader, criterion):
-    n_steps = len(train_loader) * args.epochs
+    total_steps = len(train_loader) * args.epochs
     optimizer = get_optimizer(model, args.lr)
     if args.debug:
         print(
@@ -114,10 +135,10 @@ def train_from_scratch(args, model, train_loader, valid_loader, criterion):
             #     optimizer, 100, ratio=4, steps_per_cycle=n_steps
             # )
             GradualWarmupScheduler(
-                optimizer, 100, int(n_steps*0.25),
+                optimizer, 100, int(total_steps*0.25),
                 after_scheduler=CosineAnnealingLR(
                     optimizer,
-                    n_steps - int(n_steps*0.25),
+                    total_steps - int(total_steps*0.25),
                 )
             )
         ),
@@ -132,7 +153,7 @@ def train_from_scratch(args, model, train_loader, valid_loader, criterion):
             alpha=args.mixup_alpha, softmax_target=True))
     bot = ImageClassificationBot(
         model=model, train_loader=train_loader,
-        val_loader=valid_loader, clip_grad=10.,
+        valid_loader=valid_loader, clip_grad=10.,
         optimizer=optimizer, echo=True,
         criterion=criterion,
         callbacks=callbacks,
@@ -140,7 +161,7 @@ def train_from_scratch(args, model, train_loader, valid_loader, criterion):
         use_amp=(args.amp != '')
     )
     bot.train(
-        n_steps,
+        total_steps=total_steps,
         checkpoint_interval=len(train_loader) // 2
     )
     bot.load_model(checkpoints.best_performers[0][1])
@@ -185,6 +206,7 @@ def main():
     arg('--amp', type=str, default='')
     arg('--size', type=int, default=192)
     arg('--debug', action='store_true')
+    arg('--from-checkpoint', type=str, default='')
     arg('--find-lr', action='store_true')
     args = parser.parse_args()
 
@@ -229,7 +251,12 @@ def main():
     if args.find_lr:
         find_lr(args, model, train_loader, criterion)
     else:
-        train_from_scratch(args, model, train_loader, valid_loader, criterion)
+        if args.from_checkpoint:
+            resume_training(args, model, train_loader, valid_loader)
+        else:
+            train_from_scratch(
+                args, model, train_loader,
+                valid_loader, criterion)
 
 
 if __name__ == '__main__':

@@ -3,7 +3,7 @@ import random
 import logging
 from pathlib import Path
 from typing import List, Tuple, Iterable, Union, Sequence
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, asdict
 
 import numpy as np
 import torch
@@ -34,7 +34,7 @@ class StopTraining(Exception):
 class BaseBot:
     """Base Interface to Model Training and Inference"""
     train_loader: Iterable
-    val_loader: Iterable
+    valid_loader: Iterable
     criterion: object
     model: torch.nn.Module
     optimizer: torch.optim.Optimizer
@@ -50,6 +50,7 @@ class BaseBot:
     gradient_accumulation_steps: int = 1
     echo: bool = True
     step: int = 0
+    total_steps: int = 0
     metrics: Sequence = ()
     callbacks: Sequence = ()
     pbar: bool = False
@@ -132,7 +133,16 @@ class BaseBot:
         for callback in self.callbacks:
             callback.on_eval_ends(self, metrics)
 
-    def train(self, n_steps, *, checkpoint_interval):
+    def train(self, *, checkpoint_interval, n_steps=None, total_steps=None):
+        if total_steps:
+            self.total_steps = total_steps
+        if n_steps is None:
+            if self.total_steps is None:
+                raise ValueError("n_steps and total_steps cannot both be None")
+            n_steps = self.total_steps - self.step
+        elif self.total_steps is None:
+            self.total_steps = n_steps
+        target_step = self.step + n_steps
         self.optimizer.zero_grad()
         epoch = 0
         self.logger.info(
@@ -144,7 +154,7 @@ class BaseBot:
             # IterableDataset doesn't have length
             pass
         try:
-            while self.step < n_steps:
+            while self.step < target_step:
                 epoch += 1
                 self.logger.info(
                     "=" * 20 + "Epoch %d" + "=" * 20, epoch)
@@ -162,9 +172,9 @@ class BaseBot:
                         (not callable(checkpoint_interval) and
                          self.step % checkpoint_interval == 0)
                     ):
-                        metrics = self.eval(self.val_loader)
+                        metrics = self.eval(self.valid_loader)
                         self.run_eval_ends_callbacks(metrics)
-                    if self.step >= n_steps:
+                    if self.step >= target_step:
                         break
                 self.run_epoch_ends_callbacks(epoch + 1)
         except (KeyboardInterrupt, StopTraining):
@@ -218,4 +228,29 @@ class BaseBot:
         return outputs
 
     def load_model(self, target_path):
-        self.model.load_state_dict(torch.load(target_path))
+        self.model.load_state_dict(torch.load(target_path)["model"])
+
+    def state_dict(self):
+        with torch.no_grad():
+            state_dict = asdict(self)
+            # drop loader to potentially save disk space
+            state_dict["train_loader"] = None
+            state_dict["valid_loader"] = None
+            state_dict["model"] = state_dict["model"].state_dict()
+            state_dict["optimizer"] = state_dict["optimizer"].state_dict()
+            for callback in state_dict["callbacks"]:
+                callback.on_save_checkpoint()
+            return state_dict
+
+    @classmethod
+    def load_checkpoint(cls, ckpt_path, train_loader, valid_loader, model, optimizer):
+        state_dict = torch.load(ckpt_path)
+        state_dict["train_loader"] = train_loader
+        state_dict["valid_loader"] = valid_loader
+        optimizer.load_state_dict(state_dict["optimizer"])
+        state_dict["optimizer"] = optimizer
+        model.load_state_dict(state_dict["model"])
+        state_dict["model"] = model
+        for callback in state_dict["callbacks"]:
+            callback.on_load_checkpoint(optimizer=state_dict["optimizer"])
+        return cls(**state_dict)

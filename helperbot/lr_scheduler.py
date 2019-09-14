@@ -55,6 +55,13 @@ class BaseLRScheduler(_LRScheduler):
         # Start from last_epoch
         self.step(last_epoch)
 
+    def switch_optimizer(self, optimizer):
+        self.optimizer = optimizer
+        self.optimizer._step_count = self._step_count
+
+    def clear_optimizer(self):
+        self.optimizer = None
+
 
 class LinearLR(_LRScheduler):
     """Linearly increases or decrease the learning rate between two boundaries over a number of
@@ -183,15 +190,27 @@ class GradualWarmupScheduler(BaseLRScheduler):
         else:
             return super(GradualWarmupScheduler, self).step(epoch)
 
+    def switch_optimizer(self, optimizer):
+        self.optimizer = optimizer
+        self.optimizer._step_count = self._step_count
+        if self.after_scheduler:
+            self.after_scheduler.optimizer = optimizer
+            self.after_scheduler.optimizer._step_count = self.after_scheduler._step_count
+
+    def clear_optimizer(self):
+        self.optimizer = None
+        if self.after_scheduler:
+            self.after_scheduler.optimizer = None
+
 
 class MultiStageScheduler:
-    def __init__(self, optimizers: Sequence, start_at_epochs: Sequence[int], last_epoch: int = -1):
-        assert len(optimizers) == len(start_at_epochs)
-        optimizers, start_at_epochs = (
-            np.array(optimizers), np.array(start_at_epochs))
+    def __init__(self, schedulers: Sequence, start_at_epochs: Sequence[int], last_epoch: int = -1):
+        assert len(schedulers) == len(start_at_epochs)
+        schedulers, start_at_epochs = (
+            np.array(schedulers), np.array(start_at_epochs))
         # sort starting epochs in descending order
         idx = np.flip(np.argsort(start_at_epochs))
-        self.optimizers = optimizers[idx]
+        self.schedulers = schedulers[idx]
         self.start_at_epochs = start_at_epochs[idx]
         self.last_epoch = last_epoch
         self.step(last_epoch)
@@ -200,6 +219,15 @@ class MultiStageScheduler:
         if epoch is None:
             self.last_epoch = self.last_epoch + 1
         self.last_epoch = epoch
-        for optimizer, starting_epoch in zip(self.optimizers, self.start_at_epochs):
+        for scheduler, starting_epoch in zip(self.schedulers, self.start_at_epochs):
             if self.last_epoch >= starting_epoch:
-                return optimizer.step(self.last_epoch - starting_epoch)
+                return scheduler.step(self.last_epoch - starting_epoch)
+
+    def switch_optimizer(self, optimizer):
+        for scheduler in self.schedulers:
+            scheduler.optimizer = optimizer
+            scheduler.optimizer._step_count = scheduler._step_count
+
+    def clear_optimizer(self):
+        for scheduler in self.schedulers:
+            scheduler = None

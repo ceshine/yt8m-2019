@@ -8,7 +8,8 @@ setup(
         'torch>=0.4.1',
         'dataclasses',
         'tqdm>=4.29.1',
-        'scikit-learn>=0.21.2'
+        'scikit-learn>=0.21.2',
+        'tensorboardX>=1.8'
     ],
     classifiers=[  # Optional
         # How mature is this project? Common values are

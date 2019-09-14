@@ -1,3 +1,4 @@
+from datetime import datetime
 from collections import deque, defaultdict
 from typing import Dict, Tuple, List
 from pathlib import Path
@@ -28,6 +29,12 @@ class Callback:
         return
 
     def on_step_ends(self, bot: BaseBot, train_loss: float, train_weight: int):
+        return
+
+    def on_load_checkpoint(self, **kwargs):
+        return
+
+    def on_save_checkpoint(self):
         return
 
     def reset(self):
@@ -84,6 +91,12 @@ class LearningRateSchedulerCallback(Callback):
 
     def on_step_ends(self, bot: BaseBot, train_loss, train_weight):
         self.scheduler.step()
+
+    def on_load_checkpoint(self, **kwargs):
+        self.scheduler.switch_optimizer(kwargs["optimizer"])
+
+    def on_save_checkpoint(self):
+        self.scheduler.clear_optimizer()
 
 
 class StepwiseLinearPropertySchedulerCallback(Callback):
@@ -194,11 +207,14 @@ class CheckpointCallback(Callback):
         target_value, target_string = metrics[self.monitor_metric]
         target_path = (
             self.checkpoint_dir /
-            "ckpt_{}_{}_{}.pth".format(bot.name, target_string, bot.step))
+            "ckpt_{}_{}_{}_{}.pth".format(
+                bot.name, target_string, bot.step,
+                datetime.now().strftime("%m%d%H%M"))
+        )
         bot.logger.debug("Saving checkpoint %s...", target_path)
-        torch.save(bot.model.state_dict(), target_path)
-        assert Path(target_path).exists()
         self.best_performers.append((target_value, target_path, bot.step))
+        torch.save(bot.state_dict(), target_path)
+        assert Path(target_path).exists()
         self.remove_checkpoints(keep=self.keep_n_checkpoints)
 
     def remove_checkpoints(self, keep):
@@ -208,8 +224,11 @@ class CheckpointCallback(Callback):
             Path(checkpoint).unlink()
         self.best_performers = self.best_performers[:keep]
 
-    def reset(self):
-        self.remove_checkpoints(0)
+    def reset(self, ignore_previous=False):
+        if ignore_previous:
+            self.best_performers = []
+        else:
+            self.remove_checkpoints(0)
 
 
 class EarlyStoppingCallback(Callback):

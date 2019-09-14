@@ -36,20 +36,30 @@ class WeightDecayOptimizerWrapper(Optimizer):
         self.optimizer.add_param_group(param_group)
 
     def load_state_dict(self, state_dict):
-        self.optimizer.load_state_dict(state_dict)
+        self.weight_decays = state_dict["weight_decays"]
+        self.change_with_lr = state_dict["change_with_lr"]
+        self.optimizer.load_state_dict(state_dict["optimizer"])
 
     def state_dict(self):
-        return self.optimizer.state_dict()
+        return {
+            'weight_decays': self.weight_decays,
+            'change_with_lr':  self.change_with_lr,
+            'optimizer': self.optimizer.state_dict()
+        }
 
     def __repr__(self):
         return self.optimizer.__repr__()
 
     def __getstate__(self):
-        return self.optimizer.__getstate__()
+        return {
+            'weight_decays': self.weight_decays,
+            'change_with_lr':  self.change_with_lr,
+            'optimizer': self.optimizer
+        }
 
     def __setstate__(self, state):
-        self.optimizer.__setstate__(state)
-        self.state = self.optimizer.state
+        self.__dict__.update(state)
+        self.state = self.optimizer.__getstate__()
 
     @property
     def param_groups(self):
