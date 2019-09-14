@@ -5,6 +5,12 @@ import numpy as np
 from torch.optim.lr_scheduler import _LRScheduler
 from torch.optim import Optimizer
 
+__all__ = [
+    "BaseLRScheduler", "LinearLR",
+    "ExponentialLR", "TriangularLR",
+    "GradualWarmupScheduler", "MultiStageScheduler"
+]
+
 
 class BaseLRScheduler(_LRScheduler):
     def __init__(self, optimizer, last_epoch=-1):
@@ -218,7 +224,8 @@ class MultiStageScheduler:
     def step(self, epoch=None):
         if epoch is None:
             self.last_epoch = self.last_epoch + 1
-        self.last_epoch = epoch
+        else:
+            self.last_epoch = epoch
         for scheduler, starting_epoch in zip(self.schedulers, self.start_at_epochs):
             if self.last_epoch >= starting_epoch:
                 return scheduler.step(self.last_epoch - starting_epoch)
@@ -230,4 +237,4 @@ class MultiStageScheduler:
 
     def clear_optimizer(self):
         for scheduler in self.schedulers:
-            scheduler = None
+            scheduler.optimizer = None

@@ -4,16 +4,17 @@ from pathlib import Path
 from dataclasses import dataclass
 
 import pandas as pd
+import numpy as np
 import torch
 from torch import nn, cuda
 from torch.utils.data import DataLoader
 from torch.optim.lr_scheduler import CosineAnnealingLR
 from helperbot import (
-    BaseBot, WeightDecayOptimizerWrapper, TriangularLR,
-    GradualWarmupScheduler, LearningRateSchedulerCallback,
+    BaseBot, WeightDecayOptimizerWrapper, LearningRateSchedulerCallback,
     MixUpCallback, Top1Accuracy, TopKAccuracy,
     MovingAverageStatsTrackerCallback,
-    CheckpointCallback, EarlyStoppingCallback
+    CheckpointCallback, EarlyStoppingCallback,
+    MultiStageScheduler, LinearLR
 )
 from helperbot.loss import MixUpSoftmaxLoss
 from helperbot.lr_finder import LRFinder
@@ -96,7 +97,7 @@ def resume_training(args, model, train_loader, valid_loader):
             break
     # We could set the checkpoints
     checkpoints.reset(ignore_previous=True)
-    bot.train(checkpoint_interval=len(train_loader) // 4)
+    bot.train(checkpoint_interval=len(train_loader) // 2)
     if checkpoints:
         bot.load_model(checkpoints.best_performers[0][1])
         torch.save(bot.model.state_dict(), CACHE_DIR /
@@ -125,23 +126,35 @@ def train_from_scratch(args, model, train_loader, valid_loader, criterion):
         checkpoint_dir=CACHE_DIR / "model_cache/",
         monitor_metric="accuracy"
     )
+    lr_durations = [
+        int(total_steps*0.25),
+        int(np.ceil(total_steps*0.75))
+    ]
+    break_points = [0] + list(np.cumsum(lr_durations))[:-1]
     callbacks = [
         MovingAverageStatsTrackerCallback(
             avg_window=len(train_loader) // 5,
             log_interval=len(train_loader) // 6
         ),
         LearningRateSchedulerCallback(
-            # TriangularLR(
-            #     optimizer, 100, ratio=4, steps_per_cycle=n_steps
-            # )
-            GradualWarmupScheduler(
-                optimizer, 100, int(total_steps*0.25),
-                after_scheduler=CosineAnnealingLR(
-                    optimizer,
-                    total_steps - int(total_steps*0.25),
-                )
+            MultiStageScheduler(
+                [
+                    LinearLR(optimizer, 0.01, lr_durations[0]),
+                    CosineAnnealingLR(optimizer, lr_durations[1])
+                ],
+                start_at_epochs=break_points
             )
         ),
+        # TriangularLR(
+        #     optimizer, 100, ratio=4, steps_per_cycle=n_steps
+        # )
+        # GradualWarmupScheduler(
+        #     optimizer, 100, int(total_steps*0.25),
+        #     after_scheduler=CosineAnnealingLR(
+        #         optimizer,
+        #         total_steps - int(total_steps*0.25),
+        #     )
+        # )
         checkpoints,
         EarlyStoppingCallback(
             patience=8, min_improv=1e-2,
