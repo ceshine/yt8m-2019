@@ -173,7 +173,7 @@ class BaseBot:
             self.run_train_ends_callbacks()
 
     def eval(self, loader):
-        """Warning: Only support datasets whose predictions and labels fit in memory together."""
+        """Warning: Only support datasets whose predictions and labels together fit in memory."""
         self.model.eval()
         preds, ys = [], []
         losses, weights = [], []
@@ -201,17 +201,6 @@ class BaseBot:
         self.model.eval()
         tmp = self.model(*input_tensors)
         return self.extract_prediction(tmp)
-
-    # def predict_avg(self, loader, k=8):
-    #     assert len(self.best_performers) >= k
-    #     preds = []
-    #     # Iterating through checkpoints
-    #     for i in range(k):
-    #         target = self.best_performers[i][1]
-    #         self.logger.info("Loading %s", format(target))
-    #         self.load_model(target)
-    #         preds.append(self.predict(loader).unsqueeze(0))
-    #     return torch.cat(preds, dim=0).mean(dim=0)
 
     def predict(self, loader, *, return_y=False):
         self.model.eval()

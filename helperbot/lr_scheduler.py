@@ -1,5 +1,7 @@
 from functools import wraps
+from typing import Sequence
 
+import numpy as np
 from torch.optim.lr_scheduler import _LRScheduler
 from torch.optim import Optimizer
 
@@ -55,11 +57,11 @@ class BaseLRScheduler(_LRScheduler):
 
 
 class LinearLR(_LRScheduler):
-    """Linearly increases the learning rate between two boundaries over a number of
+    """Linearly increases or decrease the learning rate between two boundaries over a number of
     iterations.
     """
 
-    def __init__(self, optimizer, min_lr_ratio, total_epochs, last_epoch=-1):
+    def __init__(self, optimizer, min_lr_ratio, total_epochs, upward=True, last_epoch=-1):
         """Initialize a scheduler.
 
         Parameters
@@ -73,13 +75,17 @@ class LinearLR(_LRScheduler):
             the index of last epoch, by default -1.
         """
         assert min_lr_ratio < 1
+        self.upward = upward
         self.min_lr_ratio = min_lr_ratio
-        self.total_epochs = total_epochs - 1  # start from zero
+        self.total_epochs = total_epochs - 1  # starts at zero
         super(LinearLR, self).__init__(optimizer, last_epoch)
 
     def get_lr(self):
         current_epoch = self.last_epoch + 1
-        progress = 1 - current_epoch / self.total_epochs  # 1 to 0
+        if self.upward:
+            progress = 1 - current_epoch / self.total_epochs  # 1 to 0
+        else:
+            progress = current_epoch / self.total_epochs  # 1 to 0
         return [
             base_lr - progress * (base_lr - self.min_lr_ratio * base_lr)
             for base_lr in self.base_lrs
@@ -176,3 +182,24 @@ class GradualWarmupScheduler(BaseLRScheduler):
             return self.after_scheduler.step(epoch)
         else:
             return super(GradualWarmupScheduler, self).step(epoch)
+
+
+class MultiStageScheduler:
+    def __init__(self, optimizers: Sequence, start_at_epochs: Sequence[int], last_epoch: int = -1):
+        assert len(optimizers) == len(start_at_epochs)
+        optimizers, start_at_epochs = (
+            np.array(optimizers), np.array(start_at_epochs))
+        # sort starting epochs in descending order
+        idx = np.flip(np.argsort(start_at_epochs))
+        self.optimizers = optimizers[idx]
+        self.start_at_epochs = start_at_epochs[idx]
+        self.last_epoch = last_epoch
+        self.step(last_epoch)
+
+    def step(self, epoch=None):
+        if epoch is None:
+            self.last_epoch = self.last_epoch + 1
+        self.last_epoch = epoch
+        for optimizer, starting_epoch in zip(self.optimizers, self.start_at_epochs):
+            if self.last_epoch >= starting_epoch:
+                return optimizer.step(self.last_epoch - starting_epoch)

@@ -66,6 +66,7 @@ class AUC(Metric):
 
 
 class Top1Accuracy(Metric):
+    """Accurcy for Multi-class or Binary classification"""
     name = "accuracy"
 
     def __call__(self, truth: torch.Tensor, pred: torch.Tensor) -> Tuple[float, str]:
@@ -77,6 +78,8 @@ class Top1Accuracy(Metric):
 
 
 class TopKAccuracy(Metric):
+    """Top K Accurcy for Multi-class or Binary classification"""
+
     def __init__(self, k=1):
         self.name = f"top_{k}_accuracy"
         self.k = k
