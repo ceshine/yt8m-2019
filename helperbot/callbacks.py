@@ -213,9 +213,9 @@ class CheckpointCallback(Callback):
         )
         bot.logger.debug("Saving checkpoint %s...", target_path)
         self.best_performers.append((target_value, target_path, bot.step))
+        self.remove_checkpoints(keep=self.keep_n_checkpoints)
         torch.save(bot.state_dict(), target_path)
         assert Path(target_path).exists()
-        self.remove_checkpoints(keep=self.keep_n_checkpoints)
 
     def remove_checkpoints(self, keep):
         self.best_performers = sorted(self.best_performers, key=lambda x: x[0])
