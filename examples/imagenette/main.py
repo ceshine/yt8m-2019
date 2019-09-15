@@ -95,8 +95,8 @@ def resume_training(args, model, train_loader, valid_loader):
         if isinstance(callback, CheckpointCallback):
             checkpoints = callback
             break
-    # We could set the checkpoints
-    checkpoints.reset(ignore_previous=True)
+    # We could reset the checkpoints
+    # checkpoints.reset(ignore_previous=True)
     bot.train(checkpoint_interval=len(train_loader) // 2)
     if checkpoints:
         bot.load_model(checkpoints.best_performers[0][1])
