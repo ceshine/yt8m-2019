@@ -197,6 +197,7 @@ class CheckpointCallback(Callback):
             checkpoint_dir: Path = Path("./data/cache/model_cache/"),
             monitor_metric: str = "loss"):
         super().__init__()
+        assert keep_n_checkpoints > 0
         self.keep_n_checkpoints = keep_n_checkpoints
         self.checkpoint_dir = checkpoint_dir
         self.monitor_metric = monitor_metric
@@ -212,9 +213,13 @@ class CheckpointCallback(Callback):
                 datetime.now().strftime("%m%d%H%M"))
         )
         bot.logger.debug("Saving checkpoint %s...", target_path)
-        self.best_performers.append((target_value, target_path, bot.step))
-        self.remove_checkpoints(keep=self.keep_n_checkpoints)
-        torch.save(bot.state_dict(), target_path)
+        if (
+            len(self.best_performers) < self.keep_n_checkpoints or
+            target_value < self.best_performers[-1][0]
+        ):
+            self.best_performers.append((target_value, target_path, bot.step))
+            self.remove_checkpoints(keep=self.keep_n_checkpoints)
+            torch.save(bot.state_dict(), target_path)
         assert Path(target_path).exists()
 
     def remove_checkpoints(self, keep):
