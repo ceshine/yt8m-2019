@@ -1,0 +1,857 @@
+12
+3,198,144 | 23,273,856 | 22,090
+12,894 items in train, 500 in valid
+Selected optimization level O1:  Insert automatic casts around Pytorch functions and Tensor methods.
+
+Defaults for this optimization level are:
+enabled                : True
+opt_level              : O1
+cast_model_type        : None
+patch_torch_functions  : True
+keep_batchnorm_fp32    : None
+master_weights         : None
+loss_scale             : dynamic
+Processing user overrides (additional kwargs that are not None)...
+After processing overrides, optimization options are:
+enabled                : True
+opt_level              : O1
+cast_model_type        : None
+patch_torch_functions  : True
+keep_batchnorm_fp32    : None
+master_weights         : None
+loss_scale             : dynamic
+[[06/26/2019 04:50:47 AM]] SEED: 9293
+[[06/26/2019 04:50:47 AM]] # of parameters: 26,494,090
+[[06/26/2019 04:50:47 AM]] # of trainable parameters: 26,494,090
+[[06/26/2019 04:50:47 AM]] Optimizer Adam (
+Parameter Group 0
+    amsgrad: False
+    betas: (0.9, 0.999)
+    eps: 1e-08
+    initial_lr: 0.003
+    lr: 3e-05
+    weight_decay: 0
+
+Parameter Group 1
+    amsgrad: False
+    betas: (0.9, 0.999)
+    eps: 1e-08
+    initial_lr: 0.003
+    lr: 3e-05
+    weight_decay: 0
+)
+[[06/26/2019 04:50:47 AM]] Batches per epoch: 201
+[[06/26/2019 04:50:47 AM]] ====================Epoch 1====================
+[[06/26/2019 04:51:11 AM]] Step 33: train 2.088867 lr: 4.881e-04
+[[06/26/2019 04:51:33 AM]] Step 66: train 2.003831 lr: 9.757e-04
+[[06/26/2019 04:51:55 AM]] Step 99: train 1.934048 lr: 1.463e-03
+100% 8/8 [00:03<00:00,  2.66it/s]
+[[06/26/2019 04:51:59 AM]] Criterion loss: 2.994992
+[[06/26/2019 04:51:59 AM]] accuracy: 31.60%
+[[06/26/2019 04:51:59 AM]] top_3_accuracy: 64.00%
+[[06/26/2019 04:51:59 AM]] Snapshot metric -0.31600000
+[[06/26/2019 04:51:59 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.31600000_100.pth...
+[[06/26/2019 04:51:59 AM]] New low
+
+[[06/26/2019 04:52:21 AM]] Step 132: train 1.819575 lr: 1.951e-03
+[[06/26/2019 04:52:44 AM]] Step 165: train 1.800967 lr: 2.439e-03
+[[06/26/2019 04:53:06 AM]] Step 198: train 2.014187 lr: 2.926e-03
+100% 8/8 [00:03<00:00,  2.65it/s]
+[[06/26/2019 04:53:11 AM]] Criterion loss: 81.801974
+[[06/26/2019 04:53:11 AM]] accuracy: 18.60%
+[[06/26/2019 04:53:11 AM]] top_3_accuracy: 36.80%
+[[06/26/2019 04:53:11 AM]] Snapshot metric -0.18600000
+[[06/26/2019 04:53:11 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.18600000_200.pth...
+[[06/26/2019 04:53:12 AM]] ====================Epoch 2====================
+[[06/26/2019 04:53:34 AM]] Step 231: train 2.045389 lr: 3.000e-03
+[[06/26/2019 04:53:57 AM]] Step 264: train 1.876293 lr: 3.000e-03
+[[06/26/2019 04:54:20 AM]] Step 297: train 1.779001 lr: 2.999e-03
+100% 8/8 [00:03<00:00,  2.78it/s]
+[[06/26/2019 04:54:26 AM]] Criterion loss: 1.560833
+[[06/26/2019 04:54:26 AM]] accuracy: 51.20%
+[[06/26/2019 04:54:26 AM]] top_3_accuracy: 76.40%
+[[06/26/2019 04:54:26 AM]] Snapshot metric -0.51200000
+[[06/26/2019 04:54:26 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.51200000_300.pth...
+[[06/26/2019 04:54:26 AM]] New low
+
+[[06/26/2019 04:54:47 AM]] Step 330: train 1.712905 lr: 2.998e-03
+[[06/26/2019 04:55:09 AM]] Step 363: train 1.643478 lr: 2.997e-03
+[[06/26/2019 04:55:32 AM]] Step 396: train 1.600575 lr: 2.996e-03
+100% 8/8 [00:03<00:00,  2.76it/s]
+[[06/26/2019 04:55:39 AM]] Criterion loss: 1.646696
+[[06/26/2019 04:55:39 AM]] accuracy: 44.60%
+[[06/26/2019 04:55:39 AM]] top_3_accuracy: 80.60%
+[[06/26/2019 04:55:39 AM]] Snapshot metric -0.44600000
+[[06/26/2019 04:55:39 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.44600000_400.pth...
+[[06/26/2019 04:55:40 AM]] ====================Epoch 3====================
+[[06/26/2019 04:56:00 AM]] Step 429: train 1.571543 lr: 2.994e-03
+[[06/26/2019 04:56:24 AM]] Step 462: train 1.502992 lr: 2.992e-03
+[[06/26/2019 04:56:46 AM]] Step 495: train 1.521054 lr: 2.990e-03
+100% 8/8 [00:03<00:00,  2.73it/s]
+[[06/26/2019 04:56:53 AM]] Criterion loss: 1.235519
+[[06/26/2019 04:56:53 AM]] accuracy: 56.40%
+[[06/26/2019 04:56:53 AM]] top_3_accuracy: 85.40%
+[[06/26/2019 04:56:53 AM]] Snapshot metric -0.56400000
+[[06/26/2019 04:56:53 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.56400000_500.pth...
+[[06/26/2019 04:56:54 AM]] New low
+
+[[06/26/2019 04:57:13 AM]] Step 528: train 1.499302 lr: 2.987e-03
+[[06/26/2019 04:57:36 AM]] Step 561: train 1.481475 lr: 2.985e-03
+[[06/26/2019 04:57:59 AM]] Step 594: train 1.440967 lr: 2.982e-03
+100% 8/8 [00:03<00:00,  2.78it/s]
+[[06/26/2019 04:58:07 AM]] Criterion loss: 1.121564
+[[06/26/2019 04:58:07 AM]] accuracy: 63.40%
+[[06/26/2019 04:58:07 AM]] top_3_accuracy: 89.20%
+[[06/26/2019 04:58:07 AM]] Snapshot metric -0.63400000
+[[06/26/2019 04:58:07 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.63400000_600.pth...
+[[06/26/2019 04:58:07 AM]] New low
+
+[[06/26/2019 04:58:09 AM]] ====================Epoch 4====================
+[[06/26/2019 04:58:27 AM]] Step 627: train 1.438941 lr: 2.978e-03
+[[06/26/2019 04:58:50 AM]] Step 660: train 1.404031 lr: 2.975e-03
+[[06/26/2019 04:59:13 AM]] Step 693: train 1.392745 lr: 2.971e-03
+100% 8/8 [00:03<00:00,  2.60it/s]
+[[06/26/2019 04:59:21 AM]] Criterion loss: 1.254980
+[[06/26/2019 04:59:21 AM]] accuracy: 59.00%
+[[06/26/2019 04:59:21 AM]] top_3_accuracy: 86.00%
+[[06/26/2019 04:59:21 AM]] Snapshot metric -0.59000000
+[[06/26/2019 04:59:21 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.59000000_700.pth...
+[[06/26/2019 04:59:40 AM]] Step 726: train 1.407548 lr: 2.967e-03
+[[06/26/2019 05:00:03 AM]] Step 759: train 1.373400 lr: 2.963e-03
+[[06/26/2019 05:00:26 AM]] Step 792: train 1.337406 lr: 2.959e-03
+100% 8/8 [00:03<00:00,  2.77it/s]
+[[06/26/2019 05:00:35 AM]] Criterion loss: 0.992852
+[[06/26/2019 05:00:35 AM]] accuracy: 68.60%
+[[06/26/2019 05:00:35 AM]] top_3_accuracy: 89.60%
+[[06/26/2019 05:00:35 AM]] Snapshot metric -0.68600000
+[[06/26/2019 05:00:35 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.68600000_800.pth...
+[[06/26/2019 05:00:35 AM]] New low
+
+[[06/26/2019 05:00:38 AM]] ====================Epoch 5====================
+[[06/26/2019 05:00:54 AM]] Step 825: train 1.312701 lr: 2.954e-03
+[[06/26/2019 05:01:17 AM]] Step 858: train 1.328595 lr: 2.949e-03
+[[06/26/2019 05:01:40 AM]] Step 891: train 1.311428 lr: 2.944e-03
+100% 8/8 [00:03<00:00,  2.68it/s]
+[[06/26/2019 05:01:49 AM]] Criterion loss: 1.129738
+[[06/26/2019 05:01:49 AM]] accuracy: 63.20%
+[[06/26/2019 05:01:49 AM]] top_3_accuracy: 89.60%
+[[06/26/2019 05:01:49 AM]] Snapshot metric -0.63200000
+[[06/26/2019 05:01:49 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.63200000_900.pth...
+[[06/26/2019 05:02:06 AM]] Step 924: train 1.320064 lr: 2.938e-03
+[[06/26/2019 05:02:29 AM]] Step 957: train 1.316305 lr: 2.932e-03
+[[06/26/2019 05:02:52 AM]] Step 990: train 1.267468 lr: 2.926e-03
+100% 8/8 [00:03<00:00,  2.71it/s]
+[[06/26/2019 05:03:02 AM]] Criterion loss: 1.094555
+[[06/26/2019 05:03:02 AM]] accuracy: 66.20%
+[[06/26/2019 05:03:02 AM]] top_3_accuracy: 85.40%
+[[06/26/2019 05:03:02 AM]] Snapshot metric -0.66200000
+[[06/26/2019 05:03:02 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.66200000_1000.pth...
+[[06/26/2019 05:03:06 AM]] ====================Epoch 6====================
+[[06/26/2019 05:03:20 AM]] Step 1023: train 1.286259 lr: 2.920e-03
+[[06/26/2019 05:03:43 AM]] Step 1056: train 1.246806 lr: 2.913e-03
+[[06/26/2019 05:04:06 AM]] Step 1089: train 1.244614 lr: 2.907e-03
+100% 8/8 [00:03<00:00,  2.81it/s]
+[[06/26/2019 05:04:17 AM]] Criterion loss: 1.046884
+[[06/26/2019 05:04:17 AM]] accuracy: 67.00%
+[[06/26/2019 05:04:17 AM]] top_3_accuracy: 89.20%
+[[06/26/2019 05:04:17 AM]] Snapshot metric -0.67000000
+[[06/26/2019 05:04:17 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.67000000_1100.pth...
+[[06/26/2019 05:04:32 AM]] Step 1122: train 1.281134 lr: 2.900e-03
+[[06/26/2019 05:04:55 AM]] Step 1155: train 1.267284 lr: 2.892e-03
+[[06/26/2019 05:05:18 AM]] Step 1188: train 1.225843 lr: 2.885e-03
+100% 8/8 [00:03<00:00,  2.67it/s]
+[[06/26/2019 05:05:30 AM]] Criterion loss: 1.005613
+[[06/26/2019 05:05:30 AM]] accuracy: 66.40%
+[[06/26/2019 05:05:30 AM]] top_3_accuracy: 91.80%
+[[06/26/2019 05:05:30 AM]] Snapshot metric -0.66400000
+[[06/26/2019 05:05:30 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.66400000_1200.pth...
+[[06/26/2019 05:05:34 AM]] ====================Epoch 7====================
+[[06/26/2019 05:05:46 AM]] Step 1221: train 1.209813 lr: 2.877e-03
+[[06/26/2019 05:06:09 AM]] Step 1254: train 1.220637 lr: 2.869e-03
+[[06/26/2019 05:06:32 AM]] Step 1287: train 1.241831 lr: 2.861e-03
+100% 8/8 [00:03<00:00,  2.59it/s]
+[[06/26/2019 05:06:45 AM]] Criterion loss: 0.842904
+[[06/26/2019 05:06:45 AM]] accuracy: 72.00%
+[[06/26/2019 05:06:45 AM]] top_3_accuracy: 91.20%
+[[06/26/2019 05:06:45 AM]] Snapshot metric -0.72000000
+[[06/26/2019 05:06:45 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.72000000_1300.pth...
+[[06/26/2019 05:06:45 AM]] New low
+
+[[06/26/2019 05:06:59 AM]] Step 1320: train 1.184084 lr: 2.852e-03
+[[06/26/2019 05:07:22 AM]] Step 1353: train 1.194479 lr: 2.844e-03
+[[06/26/2019 05:07:45 AM]] Step 1386: train 1.167037 lr: 2.835e-03
+100% 8/8 [00:03<00:00,  2.67it/s]
+[[06/26/2019 05:07:58 AM]] Criterion loss: 0.854033
+[[06/26/2019 05:07:58 AM]] accuracy: 70.40%
+[[06/26/2019 05:07:58 AM]] top_3_accuracy: 92.40%
+[[06/26/2019 05:07:58 AM]] Snapshot metric -0.70400000
+[[06/26/2019 05:07:58 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.70400000_1400.pth...
+[[06/26/2019 05:08:03 AM]] ====================Epoch 8====================
+[[06/26/2019 05:08:13 AM]] Step 1419: train 1.156311 lr: 2.826e-03
+[[06/26/2019 05:08:36 AM]] Step 1452: train 1.131677 lr: 2.816e-03
+[[06/26/2019 05:08:59 AM]] Step 1485: train 1.174408 lr: 2.807e-03
+100% 8/8 [00:03<00:00,  2.83it/s]
+[[06/26/2019 05:09:13 AM]] Criterion loss: 0.906048
+[[06/26/2019 05:09:13 AM]] accuracy: 70.60%
+[[06/26/2019 05:09:13 AM]] top_3_accuracy: 90.60%
+[[06/26/2019 05:09:13 AM]] Snapshot metric -0.70600000
+[[06/26/2019 05:09:13 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.70600000_1500.pth...
+[[06/26/2019 05:09:25 AM]] Step 1518: train 1.142526 lr: 2.797e-03
+[[06/26/2019 05:09:48 AM]] Step 1551: train 1.143422 lr: 2.787e-03
+[[06/26/2019 05:10:11 AM]] Step 1584: train 1.147209 lr: 2.776e-03
+100% 8/8 [00:03<00:00,  2.68it/s]
+[[06/26/2019 05:10:26 AM]] Criterion loss: 0.737782
+[[06/26/2019 05:10:26 AM]] accuracy: 76.20%
+[[06/26/2019 05:10:26 AM]] top_3_accuracy: 93.20%
+[[06/26/2019 05:10:26 AM]] Snapshot metric -0.76200000
+[[06/26/2019 05:10:26 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.76200000_1600.pth...
+[[06/26/2019 05:10:26 AM]] New low
+
+[[06/26/2019 05:10:32 AM]] ====================Epoch 9====================
+[[06/26/2019 05:10:39 AM]] Step 1617: train 1.089567 lr: 2.766e-03
+[[06/26/2019 05:11:02 AM]] Step 1650: train 1.106788 lr: 2.755e-03
+[[06/26/2019 05:11:25 AM]] Step 1683: train 1.080969 lr: 2.744e-03
+100% 8/8 [00:03<00:00,  2.70it/s]
+[[06/26/2019 05:11:40 AM]] Criterion loss: 0.931356
+[[06/26/2019 05:11:40 AM]] accuracy: 70.40%
+[[06/26/2019 05:11:40 AM]] top_3_accuracy: 88.40%
+[[06/26/2019 05:11:40 AM]] Snapshot metric -0.70400000
+[[06/26/2019 05:11:40 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.70400000_1700.pth...
+[[06/26/2019 05:11:52 AM]] Step 1716: train 1.113802 lr: 2.733e-03
+[[06/26/2019 05:12:15 AM]] Step 1749: train 1.076301 lr: 2.722e-03
+[[06/26/2019 05:12:37 AM]] Step 1782: train 1.062134 lr: 2.710e-03
+100% 8/8 [00:03<00:00,  2.73it/s]
+[[06/26/2019 05:12:53 AM]] Criterion loss: 0.689495
+[[06/26/2019 05:12:53 AM]] accuracy: 77.40%
+[[06/26/2019 05:12:53 AM]] top_3_accuracy: 94.40%
+[[06/26/2019 05:12:53 AM]] Snapshot metric -0.77400000
+[[06/26/2019 05:12:53 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.77400000_1800.pth...
+[[06/26/2019 05:12:54 AM]] New low
+
+[[06/26/2019 05:13:00 AM]] ====================Epoch 10====================
+[[06/26/2019 05:13:05 AM]] Step 1815: train 1.131167 lr: 2.698e-03
+[[06/26/2019 05:13:28 AM]] Step 1848: train 1.061415 lr: 2.686e-03
+[[06/26/2019 05:13:51 AM]] Step 1881: train 1.096699 lr: 2.674e-03
+100% 8/8 [00:03<00:00,  2.68it/s]
+[[06/26/2019 05:14:07 AM]] Criterion loss: 0.706621
+[[06/26/2019 05:14:07 AM]] accuracy: 77.80%
+[[06/26/2019 05:14:07 AM]] top_3_accuracy: 93.60%
+[[06/26/2019 05:14:07 AM]] Snapshot metric -0.77800000
+[[06/26/2019 05:14:07 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.77800000_1900.pth...
+[[06/26/2019 05:14:08 AM]] New low
+
+[[06/26/2019 05:14:17 AM]] Step 1914: train 1.085170 lr: 2.661e-03
+[[06/26/2019 05:14:40 AM]] Step 1947: train 1.065271 lr: 2.649e-03
+[[06/26/2019 05:15:03 AM]] Step 1980: train 1.078063 lr: 2.636e-03
+100% 8/8 [00:03<00:00,  2.61it/s]
+[[06/26/2019 05:15:21 AM]] Criterion loss: 1.121928
+[[06/26/2019 05:15:21 AM]] accuracy: 63.40%
+[[06/26/2019 05:15:21 AM]] top_3_accuracy: 93.80%
+[[06/26/2019 05:15:21 AM]] Snapshot metric -0.63400000
+[[06/26/2019 05:15:21 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.63400000_2000.pth...
+[[06/26/2019 05:15:28 AM]] ====================Epoch 11====================
+[[06/26/2019 05:15:31 AM]] Step 2013: train 1.061027 lr: 2.623e-03
+[[06/26/2019 05:15:54 AM]] Step 2046: train 1.040960 lr: 2.610e-03
+[[06/26/2019 05:16:17 AM]] Step 2079: train 1.045894 lr: 2.596e-03
+100% 8/8 [00:03<00:00,  2.72it/s]
+[[06/26/2019 05:16:35 AM]] Criterion loss: 0.598336
+[[06/26/2019 05:16:35 AM]] accuracy: 81.20%
+[[06/26/2019 05:16:35 AM]] top_3_accuracy: 95.00%
+[[06/26/2019 05:16:35 AM]] Snapshot metric -0.81200000
+[[06/26/2019 05:16:35 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.81200000_2100.pth...
+[[06/26/2019 05:16:35 AM]] New low
+
+[[06/26/2019 05:16:43 AM]] Step 2112: train 1.034370 lr: 2.582e-03
+[[06/26/2019 05:17:06 AM]] Step 2145: train 1.061889 lr: 2.569e-03
+[[06/26/2019 05:17:29 AM]] Step 2178: train 1.045994 lr: 2.555e-03
+100% 8/8 [00:03<00:00,  2.79it/s]
+[[06/26/2019 05:17:48 AM]] Criterion loss: 0.756348
+[[06/26/2019 05:17:48 AM]] accuracy: 75.60%
+[[06/26/2019 05:17:48 AM]] top_3_accuracy: 92.40%
+[[06/26/2019 05:17:48 AM]] Snapshot metric -0.75600000
+[[06/26/2019 05:17:48 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.75600000_2200.pth...
+[[06/26/2019 05:17:56 AM]] Step 2211: train 1.053982 lr: 2.540e-03
+[[06/26/2019 05:17:56 AM]] ====================Epoch 12====================
+[[06/26/2019 05:18:20 AM]] Step 2244: train 0.992972 lr: 2.526e-03
+[[06/26/2019 05:18:43 AM]] Step 2277: train 1.002770 lr: 2.511e-03
+100% 8/8 [00:03<00:00,  2.74it/s]
+[[06/26/2019 05:19:02 AM]] Criterion loss: 0.662553
+[[06/26/2019 05:19:02 AM]] accuracy: 78.80%
+[[06/26/2019 05:19:02 AM]] top_3_accuracy: 93.80%
+[[06/26/2019 05:19:02 AM]] Snapshot metric -0.78800000
+[[06/26/2019 05:19:02 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.78800000_2300.pth...
+[[06/26/2019 05:19:09 AM]] Step 2310: train 1.013837 lr: 2.497e-03
+[[06/26/2019 05:19:32 AM]] Step 2343: train 1.006926 lr: 2.482e-03
+[[06/26/2019 05:19:55 AM]] Step 2376: train 0.994406 lr: 2.467e-03
+100% 8/8 [00:03<00:00,  2.92it/s]
+[[06/26/2019 05:20:15 AM]] Criterion loss: 0.532163
+[[06/26/2019 05:20:15 AM]] accuracy: 85.60%
+[[06/26/2019 05:20:15 AM]] top_3_accuracy: 95.80%
+[[06/26/2019 05:20:15 AM]] Snapshot metric -0.85600000
+[[06/26/2019 05:20:15 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.85600000_2400.pth...
+[[06/26/2019 05:20:15 AM]] New low
+
+[[06/26/2019 05:20:21 AM]] Step 2409: train 0.983879 lr: 2.451e-03
+[[06/26/2019 05:20:23 AM]] ====================Epoch 13====================
+[[06/26/2019 05:20:46 AM]] Step 2442: train 0.956599 lr: 2.436e-03
+[[06/26/2019 05:21:09 AM]] Step 2475: train 0.972766 lr: 2.420e-03
+100% 8/8 [00:03<00:00,  2.66it/s]
+[[06/26/2019 05:21:30 AM]] Criterion loss: 0.618256
+[[06/26/2019 05:21:30 AM]] accuracy: 80.20%
+[[06/26/2019 05:21:30 AM]] top_3_accuracy: 93.40%
+[[06/26/2019 05:21:30 AM]] Snapshot metric -0.80200000
+[[06/26/2019 05:21:30 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.80200000_2500.pth...
+[[06/26/2019 05:21:36 AM]] Step 2508: train 0.981033 lr: 2.405e-03
+[[06/26/2019 05:21:58 AM]] Step 2541: train 0.980287 lr: 2.389e-03
+[[06/26/2019 05:22:21 AM]] Step 2574: train 0.932254 lr: 2.373e-03
+100% 8/8 [00:03<00:00,  2.70it/s]
+[[06/26/2019 05:22:43 AM]] Criterion loss: 0.616731
+[[06/26/2019 05:22:43 AM]] accuracy: 80.40%
+[[06/26/2019 05:22:43 AM]] top_3_accuracy: 96.80%
+[[06/26/2019 05:22:43 AM]] Snapshot metric -0.80400000
+[[06/26/2019 05:22:43 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.80400000_2600.pth...
+[[06/26/2019 05:22:48 AM]] Step 2607: train 1.004704 lr: 2.357e-03
+[[06/26/2019 05:22:52 AM]] ====================Epoch 14====================
+[[06/26/2019 05:23:12 AM]] Step 2640: train 0.936271 lr: 2.340e-03
+[[06/26/2019 05:23:35 AM]] Step 2673: train 0.953352 lr: 2.324e-03
+100% 8/8 [00:03<00:00,  2.77it/s]
+[[06/26/2019 05:23:57 AM]] Criterion loss: 0.585504
+[[06/26/2019 05:23:57 AM]] accuracy: 83.00%
+[[06/26/2019 05:23:57 AM]] top_3_accuracy: 93.80%
+[[06/26/2019 05:23:57 AM]] Snapshot metric -0.83000000
+[[06/26/2019 05:23:57 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.83000000_2700.pth...
+[[06/26/2019 05:24:01 AM]] Step 2706: train 0.959360 lr: 2.307e-03
+[[06/26/2019 05:24:24 AM]] Step 2739: train 0.955488 lr: 2.290e-03
+[[06/26/2019 05:24:47 AM]] Step 2772: train 0.949725 lr: 2.273e-03
+100% 8/8 [00:03<00:00,  2.78it/s]
+[[06/26/2019 05:25:10 AM]] Criterion loss: 0.619128
+[[06/26/2019 05:25:10 AM]] accuracy: 79.40%
+[[06/26/2019 05:25:10 AM]] top_3_accuracy: 94.60%
+[[06/26/2019 05:25:10 AM]] Snapshot metric -0.79400000
+[[06/26/2019 05:25:10 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.79400000_2800.pth...
+[[06/26/2019 05:25:13 AM]] Step 2805: train 0.960761 lr: 2.256e-03
+[[06/26/2019 05:25:19 AM]] ====================Epoch 15====================
+[[06/26/2019 05:25:37 AM]] Step 2838: train 0.930979 lr: 2.239e-03
+[[06/26/2019 05:26:01 AM]] Step 2871: train 0.928044 lr: 2.222e-03
+100% 8/8 [00:03<00:00,  2.73it/s]
+[[06/26/2019 05:26:24 AM]] Criterion loss: 0.447660
+[[06/26/2019 05:26:24 AM]] accuracy: 85.40%
+[[06/26/2019 05:26:24 AM]] top_3_accuracy: 96.20%
+[[06/26/2019 05:26:24 AM]] Snapshot metric -0.85400000
+[[06/26/2019 05:26:24 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.85400000_2900.pth...
+[[06/26/2019 05:26:27 AM]] Step 2904: train 0.931111 lr: 2.204e-03
+[[06/26/2019 05:26:50 AM]] Step 2937: train 0.915050 lr: 2.187e-03
+[[06/26/2019 05:27:13 AM]] Step 2970: train 0.918941 lr: 2.169e-03
+100% 8/8 [00:03<00:00,  2.77it/s]
+[[06/26/2019 05:27:37 AM]] Criterion loss: 0.583097
+[[06/26/2019 05:27:37 AM]] accuracy: 83.20%
+[[06/26/2019 05:27:37 AM]] top_3_accuracy: 93.60%
+[[06/26/2019 05:27:37 AM]] Snapshot metric -0.83200000
+[[06/26/2019 05:27:37 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.83200000_3000.pth...
+[[06/26/2019 05:27:39 AM]] Step 3003: train 0.941441 lr: 2.151e-03
+[[06/26/2019 05:27:47 AM]] ====================Epoch 16====================
+[[06/26/2019 05:28:03 AM]] Step 3036: train 0.902055 lr: 2.133e-03
+[[06/26/2019 05:28:26 AM]] Step 3069: train 0.908408 lr: 2.115e-03
+100% 8/8 [00:03<00:00,  2.81it/s]
+[[06/26/2019 05:28:51 AM]] Criterion loss: 0.603273
+[[06/26/2019 05:28:51 AM]] accuracy: 80.40%
+[[06/26/2019 05:28:51 AM]] top_3_accuracy: 95.60%
+[[06/26/2019 05:28:51 AM]] Snapshot metric -0.80400000
+[[06/26/2019 05:28:51 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.80400000_3100.pth...
+[[06/26/2019 05:28:52 AM]] Step 3102: train 0.897344 lr: 2.097e-03
+[[06/26/2019 05:29:15 AM]] Step 3135: train 0.896176 lr: 2.079e-03
+[[06/26/2019 05:29:38 AM]] Step 3168: train 0.914703 lr: 2.060e-03
+100% 8/8 [00:03<00:00,  2.84it/s]
+[[06/26/2019 05:30:04 AM]] Criterion loss: 0.443926
+[[06/26/2019 05:30:04 AM]] accuracy: 85.80%
+[[06/26/2019 05:30:04 AM]] top_3_accuracy: 95.20%
+[[06/26/2019 05:30:04 AM]] Snapshot metric -0.85800000
+[[06/26/2019 05:30:04 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.85800000_3200.pth...
+[[06/26/2019 05:30:04 AM]] New low
+
+[[06/26/2019 05:30:05 AM]] Step 3201: train 0.902028 lr: 2.042e-03
+[[06/26/2019 05:30:15 AM]] ====================Epoch 17====================
+[[06/26/2019 05:30:29 AM]] Step 3234: train 0.853554 lr: 2.023e-03
+[[06/26/2019 05:30:51 AM]] Step 3267: train 0.891020 lr: 2.005e-03
+[[06/26/2019 05:31:14 AM]] Step 3300: train 0.878584 lr: 1.986e-03
+100% 8/8 [00:03<00:00,  2.83it/s]
+[[06/26/2019 05:31:17 AM]] Criterion loss: 0.454462
+[[06/26/2019 05:31:17 AM]] accuracy: 87.40%
+[[06/26/2019 05:31:17 AM]] top_3_accuracy: 96.20%
+[[06/26/2019 05:31:17 AM]] Snapshot metric -0.87400000
+[[06/26/2019 05:31:17 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.87400000_3300.pth...
+[[06/26/2019 05:31:18 AM]] New low
+
+[[06/26/2019 05:31:40 AM]] Step 3333: train 0.872130 lr: 1.967e-03
+[[06/26/2019 05:32:03 AM]] Step 3366: train 0.846563 lr: 1.948e-03
+[[06/26/2019 05:32:26 AM]] Step 3399: train 0.829875 lr: 1.929e-03
+100% 8/8 [00:03<00:00,  2.73it/s]
+[[06/26/2019 05:32:30 AM]] Criterion loss: 0.505681
+[[06/26/2019 05:32:30 AM]] accuracy: 84.60%
+[[06/26/2019 05:32:30 AM]] top_3_accuracy: 95.60%
+[[06/26/2019 05:32:30 AM]] Snapshot metric -0.84600000
+[[06/26/2019 05:32:30 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.84600000_3400.pth...
+[[06/26/2019 05:32:42 AM]] ====================Epoch 18====================
+[[06/26/2019 05:32:54 AM]] Step 3432: train 0.877292 lr: 1.910e-03
+[[06/26/2019 05:33:16 AM]] Step 3465: train 0.856048 lr: 1.891e-03
+[[06/26/2019 05:33:39 AM]] Step 3498: train 0.832665 lr: 1.872e-03
+100% 8/8 [00:03<00:00,  2.76it/s]
+[[06/26/2019 05:33:44 AM]] Criterion loss: 0.531437
+[[06/26/2019 05:33:44 AM]] accuracy: 83.80%
+[[06/26/2019 05:33:44 AM]] top_3_accuracy: 94.40%
+[[06/26/2019 05:33:44 AM]] Snapshot metric -0.83800000
+[[06/26/2019 05:33:44 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.83800000_3500.pth...
+[[06/26/2019 05:34:05 AM]] Step 3531: train 0.841684 lr: 1.853e-03
+[[06/26/2019 05:34:28 AM]] Step 3564: train 0.888318 lr: 1.834e-03
+[[06/26/2019 05:34:51 AM]] Step 3597: train 0.875747 lr: 1.814e-03
+100% 8/8 [00:03<00:00,  2.77it/s]
+[[06/26/2019 05:34:56 AM]] Criterion loss: 0.588190
+[[06/26/2019 05:34:56 AM]] accuracy: 80.40%
+[[06/26/2019 05:34:56 AM]] top_3_accuracy: 94.00%
+[[06/26/2019 05:34:56 AM]] Snapshot metric -0.80400000
+[[06/26/2019 05:34:56 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.80400000_3600.pth...
+[[06/26/2019 05:35:09 AM]] ====================Epoch 19====================
+[[06/26/2019 05:35:18 AM]] Step 3630: train 0.854973 lr: 1.795e-03
+[[06/26/2019 05:35:41 AM]] Step 3663: train 0.822620 lr: 1.775e-03
+[[06/26/2019 05:36:04 AM]] Step 3696: train 0.811917 lr: 1.756e-03
+100% 8/8 [00:03<00:00,  2.83it/s]
+[[06/26/2019 05:36:10 AM]] Criterion loss: 0.417478
+[[06/26/2019 05:36:10 AM]] accuracy: 88.60%
+[[06/26/2019 05:36:10 AM]] top_3_accuracy: 97.00%
+[[06/26/2019 05:36:10 AM]] Snapshot metric -0.88600000
+[[06/26/2019 05:36:10 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.88600000_3700.pth...
+[[06/26/2019 05:36:10 AM]] New low
+
+[[06/26/2019 05:36:30 AM]] Step 3729: train 0.856564 lr: 1.736e-03
+[[06/26/2019 05:36:52 AM]] Step 3762: train 0.852314 lr: 1.717e-03
+[[06/26/2019 05:37:15 AM]] Step 3795: train 0.846153 lr: 1.697e-03
+100% 8/8 [00:03<00:00,  2.80it/s]
+[[06/26/2019 05:37:22 AM]] Criterion loss: 0.626783
+[[06/26/2019 05:37:22 AM]] accuracy: 80.40%
+[[06/26/2019 05:37:22 AM]] top_3_accuracy: 94.20%
+[[06/26/2019 05:37:22 AM]] Snapshot metric -0.80400000
+[[06/26/2019 05:37:22 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.80400000_3800.pth...
+[[06/26/2019 05:37:35 AM]] ====================Epoch 20====================
+[[06/26/2019 05:37:42 AM]] Step 3828: train 0.809091 lr: 1.677e-03
+[[06/26/2019 05:38:05 AM]] Step 3861: train 0.807990 lr: 1.658e-03
+[[06/26/2019 05:38:27 AM]] Step 3894: train 0.795915 lr: 1.638e-03
+100% 8/8 [00:03<00:00,  2.87it/s]
+[[06/26/2019 05:38:35 AM]] Criterion loss: 0.415192
+[[06/26/2019 05:38:35 AM]] accuracy: 88.00%
+[[06/26/2019 05:38:35 AM]] top_3_accuracy: 95.20%
+[[06/26/2019 05:38:35 AM]] Snapshot metric -0.88000000
+[[06/26/2019 05:38:35 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.88000000_3900.pth...
+[[06/26/2019 05:38:54 AM]] Step 3927: train 0.809721 lr: 1.618e-03
+[[06/26/2019 05:39:16 AM]] Step 3960: train 0.789773 lr: 1.598e-03
+[[06/26/2019 05:39:39 AM]] Step 3993: train 0.818609 lr: 1.578e-03
+100% 8/8 [00:03<00:00,  2.84it/s]
+[[06/26/2019 05:39:47 AM]] Criterion loss: 0.421961
+[[06/26/2019 05:39:47 AM]] accuracy: 87.60%
+[[06/26/2019 05:39:47 AM]] top_3_accuracy: 96.40%
+[[06/26/2019 05:39:47 AM]] Snapshot metric -0.87600000
+[[06/26/2019 05:39:47 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.87600000_4000.pth...
+[[06/26/2019 05:40:01 AM]] ====================Epoch 21====================
+[[06/26/2019 05:40:06 AM]] Step 4026: train 0.809096 lr: 1.559e-03
+[[06/26/2019 05:40:29 AM]] Step 4059: train 0.820165 lr: 1.539e-03
+[[06/26/2019 05:40:52 AM]] Step 4092: train 0.779752 lr: 1.519e-03
+100% 8/8 [00:03<00:00,  2.84it/s]
+[[06/26/2019 05:41:00 AM]] Criterion loss: 0.369134
+[[06/26/2019 05:41:00 AM]] accuracy: 89.40%
+[[06/26/2019 05:41:00 AM]] top_3_accuracy: 97.00%
+[[06/26/2019 05:41:00 AM]] Snapshot metric -0.89400000
+[[06/26/2019 05:41:00 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.89400000_4100.pth...
+[[06/26/2019 05:41:00 AM]] New low
+
+[[06/26/2019 05:41:18 AM]] Step 4125: train 0.793517 lr: 1.499e-03
+[[06/26/2019 05:41:40 AM]] Step 4158: train 0.781196 lr: 1.479e-03
+[[06/26/2019 05:42:03 AM]] Step 4191: train 0.788806 lr: 1.459e-03
+100% 8/8 [00:03<00:00,  2.85it/s]
+[[06/26/2019 05:42:12 AM]] Criterion loss: 0.368243
+[[06/26/2019 05:42:12 AM]] accuracy: 89.20%
+[[06/26/2019 05:42:12 AM]] top_3_accuracy: 96.60%
+[[06/26/2019 05:42:12 AM]] Snapshot metric -0.89200000
+[[06/26/2019 05:42:12 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.89200000_4200.pth...
+[[06/26/2019 05:42:26 AM]] ====================Epoch 22====================
+[[06/26/2019 05:42:29 AM]] Step 4224: train 0.770908 lr: 1.440e-03
+[[06/26/2019 05:42:52 AM]] Step 4257: train 0.764922 lr: 1.420e-03
+[[06/26/2019 05:43:15 AM]] Step 4290: train 0.759949 lr: 1.400e-03
+100% 8/8 [00:03<00:00,  2.79it/s]
+[[06/26/2019 05:43:25 AM]] Criterion loss: 0.393978
+[[06/26/2019 05:43:25 AM]] accuracy: 88.60%
+[[06/26/2019 05:43:25 AM]] top_3_accuracy: 95.40%
+[[06/26/2019 05:43:25 AM]] Snapshot metric -0.88600000
+[[06/26/2019 05:43:25 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.88600000_4300.pth...
+[[06/26/2019 05:43:41 AM]] Step 4323: train 0.784705 lr: 1.380e-03
+[[06/26/2019 05:44:03 AM]] Step 4356: train 0.773718 lr: 1.360e-03
+[[06/26/2019 05:44:26 AM]] Step 4389: train 0.766242 lr: 1.341e-03
+100% 8/8 [00:03<00:00,  2.95it/s]
+[[06/26/2019 05:44:37 AM]] Criterion loss: 0.345412
+[[06/26/2019 05:44:37 AM]] accuracy: 88.80%
+[[06/26/2019 05:44:37 AM]] top_3_accuracy: 97.00%
+[[06/26/2019 05:44:37 AM]] Snapshot metric -0.88800000
+[[06/26/2019 05:44:37 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.88800000_4400.pth...
+[[06/26/2019 05:44:52 AM]] Step 4422: train 0.771155 lr: 1.321e-03
+[[06/26/2019 05:44:52 AM]] ====================Epoch 23====================
+[[06/26/2019 05:45:16 AM]] Step 4455: train 0.762584 lr: 1.301e-03
+[[06/26/2019 05:45:38 AM]] Step 4488: train 0.740709 lr: 1.282e-03
+100% 8/8 [00:03<00:00,  2.78it/s]
+[[06/26/2019 05:45:50 AM]] Criterion loss: 0.349516
+[[06/26/2019 05:45:50 AM]] accuracy: 89.80%
+[[06/26/2019 05:45:50 AM]] top_3_accuracy: 97.00%
+[[06/26/2019 05:45:50 AM]] Snapshot metric -0.89800000
+[[06/26/2019 05:45:50 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.89800000_4500.pth...
+[[06/26/2019 05:45:50 AM]] New low
+
+[[06/26/2019 05:46:04 AM]] Step 4521: train 0.745860 lr: 1.262e-03
+[[06/26/2019 05:46:27 AM]] Step 4554: train 0.734186 lr: 1.242e-03
+[[06/26/2019 05:46:49 AM]] Step 4587: train 0.751170 lr: 1.223e-03
+100% 8/8 [00:03<00:00,  2.85it/s]
+[[06/26/2019 05:47:01 AM]] Criterion loss: 0.432250
+[[06/26/2019 05:47:01 AM]] accuracy: 88.80%
+[[06/26/2019 05:47:01 AM]] top_3_accuracy: 95.60%
+[[06/26/2019 05:47:01 AM]] Snapshot metric -0.88800000
+[[06/26/2019 05:47:01 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.88800000_4600.pth...
+[[06/26/2019 05:47:15 AM]] Step 4620: train 0.769645 lr: 1.203e-03
+[[06/26/2019 05:47:17 AM]] ====================Epoch 24====================
+[[06/26/2019 05:47:39 AM]] Step 4653: train 0.748380 lr: 1.184e-03
+[[06/26/2019 05:48:01 AM]] Step 4686: train 0.723083 lr: 1.165e-03
+100% 8/8 [00:03<00:00,  2.81it/s]
+[[06/26/2019 05:48:14 AM]] Criterion loss: 0.308336
+[[06/26/2019 05:48:14 AM]] accuracy: 91.60%
+[[06/26/2019 05:48:14 AM]] top_3_accuracy: 96.80%
+[[06/26/2019 05:48:14 AM]] Snapshot metric -0.91600000
+[[06/26/2019 05:48:14 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.91600000_4700.pth...
+[[06/26/2019 05:48:14 AM]] New low
+
+[[06/26/2019 05:48:27 AM]] Step 4719: train 0.734126 lr: 1.145e-03
+[[06/26/2019 05:48:49 AM]] Step 4752: train 0.731495 lr: 1.126e-03
+[[06/26/2019 05:49:12 AM]] Step 4785: train 0.720940 lr: 1.107e-03
+100% 8/8 [00:03<00:00,  2.87it/s]
+[[06/26/2019 05:49:25 AM]] Criterion loss: 0.360839
+[[06/26/2019 05:49:25 AM]] accuracy: 89.40%
+[[06/26/2019 05:49:25 AM]] top_3_accuracy: 96.20%
+[[06/26/2019 05:49:25 AM]] Snapshot metric -0.89400000
+[[06/26/2019 05:49:25 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.89400000_4800.pth...
+[[06/26/2019 05:49:38 AM]] Step 4818: train 0.714174 lr: 1.088e-03
+[[06/26/2019 05:49:42 AM]] ====================Epoch 25====================
+[[06/26/2019 05:50:02 AM]] Step 4851: train 0.722185 lr: 1.069e-03
+[[06/26/2019 05:50:24 AM]] Step 4884: train 0.729155 lr: 1.050e-03
+100% 8/8 [00:03<00:00,  2.86it/s]
+[[06/26/2019 05:50:38 AM]] Criterion loss: 0.326247
+[[06/26/2019 05:50:38 AM]] accuracy: 90.40%
+[[06/26/2019 05:50:38 AM]] top_3_accuracy: 97.00%
+[[06/26/2019 05:50:38 AM]] Snapshot metric -0.90400000
+[[06/26/2019 05:50:38 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.90400000_4900.pth...
+[[06/26/2019 05:50:50 AM]] Step 4917: train 0.700256 lr: 1.031e-03
+[[06/26/2019 05:51:12 AM]] Step 4950: train 0.727420 lr: 1.012e-03
+[[06/26/2019 05:51:35 AM]] Step 4983: train 0.712453 lr: 9.935e-04
+100% 8/8 [00:03<00:00,  2.74it/s]
+[[06/26/2019 05:51:50 AM]] Criterion loss: 0.302493
+[[06/26/2019 05:51:50 AM]] accuracy: 91.20%
+[[06/26/2019 05:51:50 AM]] top_3_accuracy: 97.40%
+[[06/26/2019 05:51:50 AM]] Snapshot metric -0.91200000
+[[06/26/2019 05:51:50 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.91200000_5000.pth...
+[[06/26/2019 05:52:01 AM]] Step 5016: train 0.699788 lr: 9.748e-04
+[[06/26/2019 05:52:07 AM]] ====================Epoch 26====================
+[[06/26/2019 05:52:25 AM]] Step 5049: train 0.700257 lr: 9.563e-04
+[[06/26/2019 05:52:47 AM]] Step 5082: train 0.670109 lr: 9.379e-04
+100% 8/8 [00:03<00:00,  2.85it/s]
+[[06/26/2019 05:53:03 AM]] Criterion loss: 0.329909
+[[06/26/2019 05:53:03 AM]] accuracy: 89.80%
+[[06/26/2019 05:53:03 AM]] top_3_accuracy: 97.00%
+[[06/26/2019 05:53:03 AM]] Snapshot metric -0.89800000
+[[06/26/2019 05:53:03 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.89800000_5100.pth...
+[[06/26/2019 05:53:13 AM]] Step 5115: train 0.724594 lr: 9.195e-04
+[[06/26/2019 05:53:36 AM]] Step 5148: train 0.691872 lr: 9.013e-04
+[[06/26/2019 05:53:58 AM]] Step 5181: train 0.685574 lr: 8.831e-04
+100% 8/8 [00:03<00:00,  2.84it/s]
+[[06/26/2019 05:54:14 AM]] Criterion loss: 0.339292
+[[06/26/2019 05:54:14 AM]] accuracy: 89.80%
+[[06/26/2019 05:54:14 AM]] top_3_accuracy: 96.40%
+[[06/26/2019 05:54:14 AM]] Snapshot metric -0.89800000
+[[06/26/2019 05:54:14 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.89800000_5200.pth...
+[[06/26/2019 05:54:24 AM]] Step 5214: train 0.681374 lr: 8.651e-04
+[[06/26/2019 05:54:32 AM]] ====================Epoch 27====================
+[[06/26/2019 05:54:47 AM]] Step 5247: train 0.659464 lr: 8.472e-04
+[[06/26/2019 05:55:10 AM]] Step 5280: train 0.657848 lr: 8.294e-04
+100% 8/8 [00:03<00:00,  2.87it/s]
+[[06/26/2019 05:55:27 AM]] Criterion loss: 0.346288
+[[06/26/2019 05:55:27 AM]] accuracy: 90.80%
+[[06/26/2019 05:55:27 AM]] top_3_accuracy: 97.00%
+[[06/26/2019 05:55:27 AM]] Snapshot metric -0.90800000
+[[06/26/2019 05:55:27 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.90800000_5300.pth...
+[[06/26/2019 05:55:36 AM]] Step 5313: train 0.659754 lr: 8.117e-04
+[[06/26/2019 05:55:58 AM]] Step 5346: train 0.689618 lr: 7.941e-04
+[[06/26/2019 05:56:21 AM]] Step 5379: train 0.686648 lr: 7.767e-04
+100% 8/8 [00:03<00:00,  2.89it/s]
+[[06/26/2019 05:56:39 AM]] Criterion loss: 0.318713
+[[06/26/2019 05:56:39 AM]] accuracy: 90.60%
+[[06/26/2019 05:56:39 AM]] top_3_accuracy: 97.00%
+[[06/26/2019 05:56:39 AM]] Snapshot metric -0.90600000
+[[06/26/2019 05:56:39 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.90600000_5400.pth...
+[[06/26/2019 05:56:47 AM]] Step 5412: train 0.682233 lr: 7.594e-04
+[[06/26/2019 05:56:57 AM]] ====================Epoch 28====================
+[[06/26/2019 05:57:10 AM]] Step 5445: train 0.650889 lr: 7.422e-04
+[[06/26/2019 05:57:33 AM]] Step 5478: train 0.615243 lr: 7.252e-04
+100% 8/8 [00:03<00:00,  3.00it/s]
+[[06/26/2019 05:57:51 AM]] Criterion loss: 0.316403
+[[06/26/2019 05:57:51 AM]] accuracy: 91.20%
+[[06/26/2019 05:57:51 AM]] top_3_accuracy: 97.40%
+[[06/26/2019 05:57:51 AM]] Snapshot metric -0.91200000
+[[06/26/2019 05:57:51 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.91200000_5500.pth...
+[[06/26/2019 05:57:58 AM]] Step 5511: train 0.637957 lr: 7.082e-04
+[[06/26/2019 05:58:21 AM]] Step 5544: train 0.662203 lr: 6.915e-04
+[[06/26/2019 05:58:43 AM]] Step 5577: train 0.634160 lr: 6.748e-04
+100% 8/8 [00:03<00:00,  2.87it/s]
+[[06/26/2019 05:59:02 AM]] Criterion loss: 0.294558
+[[06/26/2019 05:59:02 AM]] accuracy: 90.00%
+[[06/26/2019 05:59:02 AM]] top_3_accuracy: 97.80%
+[[06/26/2019 05:59:02 AM]] Snapshot metric -0.90000000
+[[06/26/2019 05:59:02 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.90000000_5600.pth...
+[[06/26/2019 05:59:09 AM]] Step 5610: train 0.651785 lr: 6.583e-04
+[[06/26/2019 05:59:21 AM]] ====================Epoch 29====================
+[[06/26/2019 05:59:33 AM]] Step 5643: train 0.640013 lr: 6.420e-04
+[[06/26/2019 05:59:55 AM]] Step 5676: train 0.625505 lr: 6.258e-04
+100% 8/8 [00:03<00:00,  2.83it/s]
+[[06/26/2019 06:00:15 AM]] Criterion loss: 0.283914
+[[06/26/2019 06:00:15 AM]] accuracy: 92.20%
+[[06/26/2019 06:00:15 AM]] top_3_accuracy: 97.40%
+[[06/26/2019 06:00:15 AM]] Snapshot metric -0.92200000
+[[06/26/2019 06:00:15 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.92200000_5700.pth...
+[[06/26/2019 06:00:15 AM]] New low
+
+[[06/26/2019 06:00:21 AM]] Step 5709: train 0.603463 lr: 6.097e-04
+[[06/26/2019 06:00:44 AM]] Step 5742: train 0.610686 lr: 5.938e-04
+[[06/26/2019 06:01:06 AM]] Step 5775: train 0.616423 lr: 5.781e-04
+100% 8/8 [00:03<00:00,  3.00it/s]
+[[06/26/2019 06:01:26 AM]] Criterion loss: 0.323383
+[[06/26/2019 06:01:26 AM]] accuracy: 91.00%
+[[06/26/2019 06:01:26 AM]] top_3_accuracy: 97.00%
+[[06/26/2019 06:01:26 AM]] Snapshot metric -0.91000000
+[[06/26/2019 06:01:26 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.91000000_5800.pth...
+[[06/26/2019 06:01:32 AM]] Step 5808: train 0.612338 lr: 5.626e-04
+[[06/26/2019 06:01:46 AM]] ====================Epoch 30====================
+[[06/26/2019 06:01:55 AM]] Step 5841: train 0.614326 lr: 5.471e-04
+[[06/26/2019 06:02:18 AM]] Step 5874: train 0.584947 lr: 5.319e-04
+100% 8/8 [00:03<00:00,  2.83it/s]
+[[06/26/2019 06:02:39 AM]] Criterion loss: 0.255204
+[[06/26/2019 06:02:39 AM]] accuracy: 92.40%
+[[06/26/2019 06:02:39 AM]] top_3_accuracy: 97.80%
+[[06/26/2019 06:02:39 AM]] Snapshot metric -0.92400000
+[[06/26/2019 06:02:39 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.92400000_5900.pth...
+[[06/26/2019 06:02:39 AM]] New low
+
+[[06/26/2019 06:02:44 AM]] Step 5907: train 0.627207 lr: 5.168e-04
+[[06/26/2019 06:03:07 AM]] Step 5940: train 0.645845 lr: 5.019e-04
+[[06/26/2019 06:03:29 AM]] Step 5973: train 0.613126 lr: 4.872e-04
+100% 8/8 [00:03<00:00,  2.96it/s]
+[[06/26/2019 06:03:51 AM]] Criterion loss: 0.299434
+[[06/26/2019 06:03:51 AM]] accuracy: 91.40%
+[[06/26/2019 06:03:51 AM]] top_3_accuracy: 97.20%
+[[06/26/2019 06:03:51 AM]] Snapshot metric -0.91400000
+[[06/26/2019 06:03:51 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.91400000_6000.pth...
+[[06/26/2019 06:03:55 AM]] Step 6006: train 0.609358 lr: 4.727e-04
+Gradient overflow.  Skipping step, loss scaler 0 reducing loss scale to 262144.0
+[[06/26/2019 06:04:11 AM]] ====================Epoch 31====================
+[[06/26/2019 06:04:19 AM]] Step 6039: train 0.585019 lr: 4.583e-04
+[[06/26/2019 06:04:41 AM]] Step 6072: train 0.590449 lr: 4.441e-04
+100% 8/8 [00:03<00:00,  2.86it/s]
+[[06/26/2019 06:05:03 AM]] Criterion loss: 0.279464
+[[06/26/2019 06:05:03 AM]] accuracy: 92.60%
+[[06/26/2019 06:05:03 AM]] top_3_accuracy: 97.40%
+[[06/26/2019 06:05:03 AM]] Snapshot metric -0.92600000
+[[06/26/2019 06:05:03 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.92600000_6100.pth...
+[[06/26/2019 06:05:03 AM]] New low
+
+[[06/26/2019 06:05:07 AM]] Step 6105: train 0.577295 lr: 4.301e-04
+[[06/26/2019 06:05:29 AM]] Step 6138: train 0.580996 lr: 4.163e-04
+[[06/26/2019 06:05:52 AM]] Step 6171: train 0.592950 lr: 4.027e-04
+100% 8/8 [00:03<00:00,  2.79it/s]
+[[06/26/2019 06:06:15 AM]] Criterion loss: 0.257965
+[[06/26/2019 06:06:15 AM]] accuracy: 92.20%
+[[06/26/2019 06:06:15 AM]] top_3_accuracy: 97.20%
+[[06/26/2019 06:06:15 AM]] Snapshot metric -0.92200000
+[[06/26/2019 06:06:15 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.92200000_6200.pth...
+[[06/26/2019 06:06:18 AM]] Step 6204: train 0.560761 lr: 3.893e-04
+[[06/26/2019 06:06:36 AM]] ====================Epoch 32====================
+[[06/26/2019 06:06:41 AM]] Step 6237: train 0.597171 lr: 3.760e-04
+[[06/26/2019 06:07:04 AM]] Step 6270: train 0.566661 lr: 3.630e-04
+100% 8/8 [00:03<00:00,  2.78it/s]
+[[06/26/2019 06:07:27 AM]] Criterion loss: 0.277386
+[[06/26/2019 06:07:27 AM]] accuracy: 92.40%
+[[06/26/2019 06:07:27 AM]] top_3_accuracy: 97.00%
+[[06/26/2019 06:07:27 AM]] Snapshot metric -0.92400000
+[[06/26/2019 06:07:27 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.92400000_6300.pth...
+[[06/26/2019 06:07:30 AM]] Step 6303: train 0.592717 lr: 3.502e-04
+[[06/26/2019 06:07:52 AM]] Step 6336: train 0.581637 lr: 3.375e-04
+[[06/26/2019 06:08:15 AM]] Step 6369: train 0.584330 lr: 3.251e-04
+100% 8/8 [00:03<00:00,  2.81it/s]
+[[06/26/2019 06:08:39 AM]] Criterion loss: 0.293903
+[[06/26/2019 06:08:39 AM]] accuracy: 91.60%
+[[06/26/2019 06:08:39 AM]] top_3_accuracy: 97.20%
+[[06/26/2019 06:08:39 AM]] Snapshot metric -0.91600000
+[[06/26/2019 06:08:39 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.91600000_6400.pth...
+[[06/26/2019 06:08:41 AM]] Step 6402: train 0.574097 lr: 3.129e-04
+[[06/26/2019 06:09:01 AM]] ====================Epoch 33====================
+[[06/26/2019 06:09:05 AM]] Step 6435: train 0.579372 lr: 3.008e-04
+[[06/26/2019 06:09:27 AM]] Step 6468: train 0.565200 lr: 2.890e-04
+100% 8/8 [00:03<00:00,  2.84it/s]
+[[06/26/2019 06:09:53 AM]] Criterion loss: 0.245688
+[[06/26/2019 06:09:53 AM]] accuracy: 93.40%
+[[06/26/2019 06:09:53 AM]] top_3_accuracy: 97.60%
+[[06/26/2019 06:09:53 AM]] Snapshot metric -0.93400000
+[[06/26/2019 06:09:53 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.93400000_6500.pth...
+[[06/26/2019 06:09:53 AM]] New low
+
+[[06/26/2019 06:09:54 AM]] Step 6501: train 0.553029 lr: 2.774e-04
+[[06/26/2019 06:10:17 AM]] Step 6534: train 0.550502 lr: 2.660e-04
+[[06/26/2019 06:10:39 AM]] Step 6567: train 0.575284 lr: 2.549e-04
+[[06/26/2019 06:11:02 AM]] Step 6600: train 0.561879 lr: 2.439e-04
+100% 8/8 [00:03<00:00,  2.73it/s]
+[[06/26/2019 06:11:05 AM]] Criterion loss: 0.241576
+[[06/26/2019 06:11:05 AM]] accuracy: 93.60%
+[[06/26/2019 06:11:05 AM]] top_3_accuracy: 97.40%
+[[06/26/2019 06:11:05 AM]] Snapshot metric -0.93600000
+[[06/26/2019 06:11:05 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.93600000_6600.pth...
+[[06/26/2019 06:11:06 AM]] New low
+
+[[06/26/2019 06:11:28 AM]] Step 6633: train 0.545158 lr: 2.332e-04
+[[06/26/2019 06:11:28 AM]] ====================Epoch 34====================
+[[06/26/2019 06:11:52 AM]] Step 6666: train 0.552064 lr: 2.227e-04
+[[06/26/2019 06:12:15 AM]] Step 6699: train 0.561916 lr: 2.124e-04
+100% 8/8 [00:03<00:00,  2.83it/s]
+[[06/26/2019 06:12:19 AM]] Criterion loss: 0.238515
+[[06/26/2019 06:12:19 AM]] accuracy: 92.80%
+[[06/26/2019 06:12:19 AM]] top_3_accuracy: 98.00%
+[[06/26/2019 06:12:19 AM]] Snapshot metric -0.92800000
+[[06/26/2019 06:12:19 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.92800000_6700.pth...
+[[06/26/2019 06:12:41 AM]] Step 6732: train 0.524327 lr: 2.023e-04
+[[06/26/2019 06:13:03 AM]] Step 6765: train 0.524150 lr: 1.925e-04
+[[06/26/2019 06:13:26 AM]] Step 6798: train 0.525560 lr: 1.829e-04
+100% 8/8 [00:03<00:00,  2.82it/s]
+[[06/26/2019 06:13:30 AM]] Criterion loss: 0.233763
+[[06/26/2019 06:13:30 AM]] accuracy: 93.20%
+[[06/26/2019 06:13:30 AM]] top_3_accuracy: 98.00%
+[[06/26/2019 06:13:30 AM]] Snapshot metric -0.93200000
+[[06/26/2019 06:13:30 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.93200000_6800.pth...
+[[06/26/2019 06:13:51 AM]] Step 6831: train 0.529965 lr: 1.735e-04
+[[06/26/2019 06:13:53 AM]] ====================Epoch 35====================
+[[06/26/2019 06:14:15 AM]] Step 6864: train 0.546529 lr: 1.644e-04
+[[06/26/2019 06:14:38 AM]] Step 6897: train 0.522123 lr: 1.554e-04
+100% 8/8 [00:03<00:00,  2.86it/s]
+[[06/26/2019 06:14:43 AM]] Criterion loss: 0.244940
+[[06/26/2019 06:14:43 AM]] accuracy: 93.80%
+[[06/26/2019 06:14:43 AM]] top_3_accuracy: 97.60%
+[[06/26/2019 06:14:43 AM]] Snapshot metric -0.93800000
+[[06/26/2019 06:14:43 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.93800000_6900.pth...
+[[06/26/2019 06:14:43 AM]] New low
+
+[[06/26/2019 06:15:04 AM]] Step 6930: train 0.538131 lr: 1.468e-04
+[[06/26/2019 06:15:26 AM]] Step 6963: train 0.533548 lr: 1.383e-04
+[[06/26/2019 06:15:49 AM]] Step 6996: train 0.545067 lr: 1.301e-04
+100% 8/8 [00:03<00:00,  2.90it/s]
+[[06/26/2019 06:15:55 AM]] Criterion loss: 0.253714
+[[06/26/2019 06:15:55 AM]] accuracy: 92.60%
+[[06/26/2019 06:15:55 AM]] top_3_accuracy: 97.20%
+[[06/26/2019 06:15:55 AM]] Snapshot metric -0.92600000
+[[06/26/2019 06:15:55 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.92600000_7000.pth...
+[[06/26/2019 06:16:15 AM]] Step 7029: train 0.557157 lr: 1.222e-04
+[[06/26/2019 06:16:19 AM]] ====================Epoch 36====================
+[[06/26/2019 06:16:38 AM]] Step 7062: train 0.538787 lr: 1.144e-04
+[[06/26/2019 06:17:01 AM]] Step 7095: train 0.555395 lr: 1.070e-04
+100% 8/8 [00:03<00:00,  2.75it/s]
+[[06/26/2019 06:17:08 AM]] Criterion loss: 0.246587
+[[06/26/2019 06:17:08 AM]] accuracy: 92.40%
+[[06/26/2019 06:17:08 AM]] top_3_accuracy: 98.20%
+[[06/26/2019 06:17:08 AM]] Snapshot metric -0.92400000
+[[06/26/2019 06:17:08 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.92400000_7100.pth...
+[[06/26/2019 06:17:27 AM]] Step 7128: train 0.531736 lr: 9.973e-05
+[[06/26/2019 06:17:50 AM]] Step 7161: train 0.531445 lr: 9.274e-05
+[[06/26/2019 06:18:12 AM]] Step 7194: train 0.516053 lr: 8.599e-05
+100% 8/8 [00:03<00:00,  2.86it/s]
+[[06/26/2019 06:18:20 AM]] Criterion loss: 0.244654
+[[06/26/2019 06:18:20 AM]] accuracy: 93.00%
+[[06/26/2019 06:18:20 AM]] top_3_accuracy: 98.00%
+[[06/26/2019 06:18:20 AM]] Snapshot metric -0.93000000
+[[06/26/2019 06:18:20 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.93000000_7200.pth...
+[[06/26/2019 06:18:38 AM]] Step 7227: train 0.513209 lr: 7.950e-05
+[[06/26/2019 06:18:44 AM]] ====================Epoch 37====================
+[[06/26/2019 06:19:02 AM]] Step 7260: train 0.508501 lr: 7.325e-05
+[[06/26/2019 06:19:25 AM]] Step 7293: train 0.524772 lr: 6.725e-05
+100% 8/8 [00:03<00:00,  2.87it/s]
+[[06/26/2019 06:19:33 AM]] Criterion loss: 0.237530
+[[06/26/2019 06:19:33 AM]] accuracy: 92.80%
+[[06/26/2019 06:19:33 AM]] top_3_accuracy: 98.00%
+[[06/26/2019 06:19:33 AM]] Snapshot metric -0.92800000
+[[06/26/2019 06:19:33 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.92800000_7300.pth...
+[[06/26/2019 06:19:51 AM]] Step 7326: train 0.511070 lr: 6.150e-05
+[[06/26/2019 06:20:13 AM]] Step 7359: train 0.531514 lr: 5.601e-05
+[[06/26/2019 06:20:36 AM]] Step 7392: train 0.520961 lr: 5.076e-05
+100% 8/8 [00:03<00:00,  2.76it/s]
+[[06/26/2019 06:20:45 AM]] Criterion loss: 0.236326
+[[06/26/2019 06:20:45 AM]] accuracy: 93.40%
+[[06/26/2019 06:20:45 AM]] top_3_accuracy: 97.40%
+[[06/26/2019 06:20:45 AM]] Snapshot metric -0.93400000
+[[06/26/2019 06:20:45 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.93400000_7400.pth...
+[[06/26/2019 06:21:02 AM]] Step 7425: train 0.516892 lr: 4.577e-05
+[[06/26/2019 06:21:10 AM]] ====================Epoch 38====================
+[[06/26/2019 06:21:26 AM]] Step 7458: train 0.493356 lr: 4.104e-05
+[[06/26/2019 06:21:49 AM]] Step 7491: train 0.508306 lr: 3.655e-05
+100% 8/8 [00:03<00:00,  2.83it/s]
+[[06/26/2019 06:21:58 AM]] Criterion loss: 0.231682
+[[06/26/2019 06:21:58 AM]] accuracy: 93.80%
+[[06/26/2019 06:21:58 AM]] top_3_accuracy: 97.60%
+[[06/26/2019 06:21:58 AM]] Snapshot metric -0.93800000
+[[06/26/2019 06:21:58 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.93800000_7500.pth...
+[[06/26/2019 06:22:15 AM]] Step 7524: train 0.517698 lr: 3.233e-05
+[[06/26/2019 06:22:37 AM]] Step 7557: train 0.510655 lr: 2.836e-05
+[[06/26/2019 06:22:59 AM]] Step 7590: train 0.512032 lr: 2.465e-05
+100% 8/8 [00:03<00:00,  2.81it/s]
+[[06/26/2019 06:23:10 AM]] Criterion loss: 0.239590
+[[06/26/2019 06:23:10 AM]] accuracy: 93.00%
+[[06/26/2019 06:23:10 AM]] top_3_accuracy: 97.40%
+[[06/26/2019 06:23:10 AM]] Snapshot metric -0.93000000
+[[06/26/2019 06:23:10 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.93000000_7600.pth...
+[[06/26/2019 06:23:26 AM]] Step 7623: train 0.529133 lr: 2.120e-05
+[[06/26/2019 06:23:36 AM]] ====================Epoch 39====================
+[[06/26/2019 06:23:49 AM]] Step 7656: train 0.514892 lr: 1.800e-05
+[[06/26/2019 06:24:12 AM]] Step 7689: train 0.495112 lr: 1.507e-05
+100% 8/8 [00:03<00:00,  2.78it/s]
+[[06/26/2019 06:24:23 AM]] Criterion loss: 0.233898
+[[06/26/2019 06:24:23 AM]] accuracy: 94.00%
+[[06/26/2019 06:24:23 AM]] top_3_accuracy: 97.60%
+[[06/26/2019 06:24:23 AM]] Snapshot metric -0.94000000
+[[06/26/2019 06:24:23 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.94000000_7700.pth...
+[[06/26/2019 06:24:23 AM]] New low
+
+[[06/26/2019 06:24:38 AM]] Step 7722: train 0.514868 lr: 1.240e-05
+[[06/26/2019 06:25:00 AM]] Step 7755: train 0.507192 lr: 9.980e-06
+[[06/26/2019 06:25:23 AM]] Step 7788: train 0.516354 lr: 7.826e-06
+100% 8/8 [00:03<00:00,  2.93it/s]
+[[06/26/2019 06:25:34 AM]] Criterion loss: 0.238724
+[[06/26/2019 06:25:34 AM]] accuracy: 93.60%
+[[06/26/2019 06:25:34 AM]] top_3_accuracy: 97.40%
+[[06/26/2019 06:25:34 AM]] Snapshot metric -0.93600000
+[[06/26/2019 06:25:34 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.93600000_7800.pth...
+[[06/26/2019 06:25:49 AM]] Step 7821: train 0.500231 lr: 5.933e-06
+[[06/26/2019 06:26:01 AM]] ====================Epoch 40====================
+[[06/26/2019 06:26:13 AM]] Step 7854: train 0.512562 lr: 4.301e-06
+[[06/26/2019 06:26:35 AM]] Step 7887: train 0.504358 lr: 2.931e-06
+100% 8/8 [00:03<00:00,  2.90it/s]
+[[06/26/2019 06:26:48 AM]] Criterion loss: 0.236002
+[[06/26/2019 06:26:48 AM]] accuracy: 94.00%
+[[06/26/2019 06:26:48 AM]] top_3_accuracy: 97.40%
+[[06/26/2019 06:26:48 AM]] Snapshot metric -0.94000000
+[[06/26/2019 06:26:48 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.94000000_7900.pth...
+[[06/26/2019 06:27:01 AM]] Step 7920: train 0.509701 lr: 1.822e-06
+[[06/26/2019 06:27:24 AM]] Step 7953: train 0.495575 lr: 9.756e-07
+[[06/26/2019 06:27:46 AM]] Step 7986: train 0.489397 lr: 3.914e-07
+100% 8/8 [00:03<00:00,  2.93it/s]
+[[06/26/2019 06:27:59 AM]] Criterion loss: 0.234036
+[[06/26/2019 06:27:59 AM]] accuracy: 93.40%
+[[06/26/2019 06:27:59 AM]] top_3_accuracy: 97.40%
+[[06/26/2019 06:27:59 AM]] Snapshot metric -0.93400000
+[[06/26/2019 06:27:59 AM]] Saving checkpoint data/cache/model_cache/snapshot_basebot_-0.93400000_8000.pth...
+[[06/26/2019 06:28:12 AM]] Step 8019: train 0.495264 lr: 6.938e-08
+CPU times: user 24.7 s, sys: 3.02 s, total: 27.7 s
+Wall time: 1h 37min 54s
