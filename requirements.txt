@@ -1,0 +1,5 @@
+tensorflow==2.0.0-rc0 
+pandas
+scikit-learn
+python-telegram-bot
+https://github.com/ceshine/pytorch_helper_bot/archive/0.3.0.zip
