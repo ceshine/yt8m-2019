@@ -36,6 +36,8 @@ def main():
     arg('--model-names', nargs="+")
     args = parser.parse_args()
 
+    Path("data/cache/inference").mkdir(exist_ok=True, parents=True)
+
     model_dir = Path(args.model_dir)
     predictions = []
     with open(f"data/cache/inference/{datetime.now().strftime('log_%m%d_%H%M')}.txt", "w") as fout:
