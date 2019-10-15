@@ -214,7 +214,7 @@ def main():
             DBoFModel(
                 hidden_dim=4096, p_drop=0.5, fcn_dim=args.fcn_dim,
                 num_mixtures=args.n_mixtures, per_class=False,
-                frame_se_reduction=16, video_se_reduction=4,
+                frame_se_reduction=8, video_se_reduction=4,
             ).cuda(),
             max_len=args.max_len
         )
