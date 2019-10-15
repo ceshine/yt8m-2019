@@ -193,6 +193,7 @@ def train_from_start(args, model, optimizer, train_loader, valid_loader):
 def main():
     parser = argparse.ArgumentParser()
     arg = parser.add_argument
+    arg('model', type=str)
     arg('--lr', type=float, default=5e-4)
     arg('--steps', type=int, default=80000)
     arg('--per-class', action="store_true")
@@ -202,40 +203,37 @@ def main():
     arg('--groups', type=int, default=8)
     arg('--amp', type=str, default='')
     arg('--batch-size', type=int, default=32)
+    arg('--fcn-dim', type=int, default=2048)
     arg('--max-len', type=int, default=-1)
+    arg('--n-mixtures', type=int, default=4)
     args = parser.parse_args()
     train_loader, valid_loader = get_loaders(args)
 
-    # model = BasicPoolingModel(hidden_dim=2048, p_drop=0.).cuda()
-    # model = BasicMoeModel(
-    #     hidden_dim=8192, p_drop=0.5,
-    #     num_mixtures=4, per_class=False, se_reduction=4
-    # ).cuda()
-    model = SampleFrameModelWrapper(
-        DBoFModel(
-            hidden_dim=4096, p_drop=0.5, fcn_dim=2048,
-            num_mixtures=4, per_class=False,
-            frame_se_reduction=16, video_se_reduction=4,
-        ).cuda(),
-        max_len=args.max_len
-    )
-    # model = NetVladModel(
-    #     fcn_dim=2048, p_drop=0.5,
-    #     n_clusters=args.n_clusters,
-    #     num_mixtures=2, per_class=args.per_class,
-    #     add_batchnorm=True
-    # ).cuda()
-    # model = SampleFrameModelWrapper(
-    #     NeXtVLADModel(
-    #         fcn_dim=2048, p_drop=0.5,
-    #         groups=args.groups, expansion=2,
-    #         n_clusters=args.n_clusters,
-    #         num_mixtures=4, per_class=args.per_class,
-    #         add_batchnorm=True, se_reduction=4
-    #     ).cuda(),
-    #     max_len=args.max_len
-    # )
+    if args.model == "dbof":
+        model = SampleFrameModelWrapper(
+            DBoFModel(
+                hidden_dim=4096, p_drop=0.5, fcn_dim=args.fcn_dim,
+                num_mixtures=args.n_mixtures, per_class=False,
+                frame_se_reduction=16, video_se_reduction=4,
+            ).cuda(),
+            max_len=args.max_len
+        )
+    elif args.model == "nextvlad":
+        model = SampleFrameModelWrapper(
+            NeXtVLADModel(
+                fcn_dim=2048, p_drop=0.5,
+                groups=args.groups, expansion=2,
+                n_clusters=args.n_clusters,
+                num_mixtures=4, per_class=args.per_class,
+                add_batchnorm=True, se_reduction=4
+            ).cuda(),
+            max_len=args.max_len
+        )
+    else:
+        raise ValueError("Unrecognized model: %s" % args.model)
+
     print(model)
+
     optimizer_grouped_parameters = [
         {
             'params': [p for n, p in model.named_parameters()

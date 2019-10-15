@@ -1,0 +1,6 @@
+SEED=31537 python -m yt8m.train_pure_segment data/cache/video/ dbof-3.pth --name dbof-3 --steps 8000 --ckpt-interval 4000 --offset 3 --lr 2e-4 --fold 2 --batch-size 128
+SEED=31537 python -m yt8m.train_pure_segment data/cache/video/ dbof-3.pth --name dbof-3 --steps 8000 --ckpt-interval 4000 --offset 3 --lr 2e-4 --fold 1 --batch-size 128
+SEED=1822 python -m yt8m.train_pure_segment data/cache/video/ dbof-3.pth --name dbof-3 --steps 9000 --ckpt-interval 3000 --offset 3 --lr 2e-4 --fold 0 --batch-size 128
+SEED=1423 python -m yt8m.train_pure_segment data/cache/video/ nxvlad-2.pth --name nxvlad-2 --steps 12000 --ckpt-interval 4000 --offset 3 --lr 2e-4 --fold 0 --batch-size 128
+SEED=423 python -m yt8m.train_pure_segment data/cache/video/ nxvlad-2.pth --name nxvlad-2 --steps 8000 --ckpt-interval 4000 --offset 3 --lr 2e-4 --fold 1 --batch-size 128
+SEED=33537 python -m yt8m.train_pure_segment data/cache/video/ nxvlad-2.pth --name nxvlad-2 --steps 12000 --ckpt-interval 4000 --offset 3 --lr 2e-4 --fold 2 --batch-size 128

@@ -49,11 +49,32 @@ My local computer:
 - 1 Intel i7-7700K CPU
 - 1 NVIDIA GTX 1070 GPU
 - 16 GB RAM
+- Linux Mint 19.2
 
 Google Cloud Compute instance:
 
 - 8 vCPU
 - 20 GB RAM
 - 1 NVIDIA Tesla T4 or 1 NVIDIA Tesla P100
+- Debian 9
 
 In addition to the disk space for the datasets, 100 GB extra space is needed for the `cache` folder.
+
+Local computer can only be used to train context-agnostic models, make inference, and create submission files. Video-level model pre-training and context-aware models requries at least T4 to run.
+
+## Reproduction Instructions
+
+1. pretraining: `bash scripts/pretraning.bash`
+2. finetuning context-agnostic models: `bash scripts/context-agnostic.bash`
+3. finetuning context-aware models: `bash scripts/context-aware.bash`
+4. prepare the metadata for the test set: `python -m yt8m.prepare_test_meta`
+5. creating and dumping predictions to disk: `python -m yt8m.inference_memmap`
+6. create submission file: `python -m yt8m.create_submission_from_memmaps`
+
+The submission file will be create as `sub.csv` at the project root folder.
+
+(if you have trained segment classifiers at hand, put them into `data/cache/segment` folder, and run step 4 to 6.)
+
+## Troubleshooting
+
+- **RuntimeError: received 0 items of ancdata**: [Increasing ulimit and file descriptors limit on Linux](https://glassonionblog.wordpress.com/2013/01/27/increase-ulimit-and-file-descriptors-limit/).

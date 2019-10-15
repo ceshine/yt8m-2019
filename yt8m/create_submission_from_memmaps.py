@@ -32,7 +32,7 @@ def main():
     assert PRUNING_FREQUENCY % BATCH_SIZE == 0
     parser = argparse.ArgumentParser()
     arg = parser.add_argument
-    arg('--model-dir', type=str, default="/data/yt8m-inference/")
+    arg('--model-dir', type=str, default="data/cache/predictions/")
     arg('--model-names', nargs="+")
     args = parser.parse_args()
 
@@ -60,9 +60,9 @@ def main():
     buckets = [[[] for _ in range(n_bins)] for _ in range(1000)]
     minimums = np.array([-1] * 1000)
     # not_filled = np.array([True] * 1000)
-    indices = joblib.load("/mnt/transcend/ref_indices.jl")
-    vids = joblib.load("/mnt/transcend/ref_vids.jl")
-    vid_mapping = joblib.load("/mnt/transcend/vid_mapping.jl")
+    indices = joblib.load("data/cache/ref_indices.jl")
+    vids = joblib.load("data/cache/ref_vids.jl")
+    vid_mapping = joblib.load("data/cache/vid_mapping.jl")
     with torch.no_grad():
         for cnt in tqdm(range(0, predictions[0].shape[0], BATCH_SIZE)):
             # shape(frames / 5, n_classes)

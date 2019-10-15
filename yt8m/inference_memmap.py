@@ -41,11 +41,12 @@ def patch(model):
 def main():
     parser = argparse.ArgumentParser()
     arg = parser.add_argument
-    arg('--model-dir', type=str, default="data/cache/models/")
+    arg('--model-dir', type=str, default="data/cache/segment/")
     arg('--model-names', nargs="+")
     arg('--offset', type=int, default=0)
     args = parser.parse_args()
 
+    Path("data/cache/predictions/").mkdir(exist_ok=True, parents=True)
     model_dir = Path(args.model_dir)
     model_paths = []
     if args.model_names is None:
@@ -62,12 +63,12 @@ def main():
             collate_test_segments,
             return_vid=False),
         pin_memory=True)
-    ref_indices = joblib.load("/mnt/transcend/ref_indices.jl")
+    ref_indices = joblib.load("data/cache/ref_indices.jl")
     with torch.no_grad():
         models = []
         predictions = []
         for model_path in model_paths:
-            target_path = f"/data/yt8m-inference/{model_path.stem}.np"
+            target_path = f"data/cache/predictions/{model_path.stem}.np"
             if Path(target_path).exists():
                 print("Skipping ", model_path.stem)
                 continue
