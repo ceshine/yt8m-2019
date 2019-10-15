@@ -19,6 +19,5 @@ __pycache__/
 bot
 input
 
-data/
 notebooks/.ipynb_checkpoints/
 docs/
