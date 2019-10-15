@@ -8,6 +8,10 @@ import telegram
 DATE_FORMAT = "%Y-%m-%d %H:%M:%d"
 
 
+def identity(func):
+    return func
+
+
 def telegram_sender(token: str, chat_id: int, name: str):
     """
     Telegram sender wrapper: execute func, send a Telegram message with the end status
@@ -23,6 +27,8 @@ def telegram_sender(token: str, chat_id: int, name: str):
         (start a conversation with your bot by sending a message and get the `int` under
         message['chat']['id'])
     """
+    if token == "":
+        return identity
 
     bot = telegram.Bot(token=token)
 
