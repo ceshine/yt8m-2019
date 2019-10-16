@@ -19,7 +19,17 @@ Highlights:
   - pandas==0.25.1
   - python-telegram-bot==12.0.0
 
-TODO: provide a Dockerfile.
+Update: a Dockerfile and a public Docker images have been created for this project. Example usage:
+
+```
+docker run --gpus all \
+    -v /path/to/segment/dataset:/home/docker/src/data/segment \
+    -v /path/to/video/dataset:/home/docker/src/data/video \
+    --shm-size=1G -ti --name mycontainer \
+    ceshine/yt8m-2019
+```
+
+(Note: you need to install Docker and [NVIDIA/nvidia-docker](https://github.com/NVIDIA/nvidia-docker) first.)
 
 ## Folder Structure
 
