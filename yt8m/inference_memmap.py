@@ -43,7 +43,7 @@ def main():
     arg = parser.add_argument
     arg('--model-dir', type=str, default="data/cache/segment/")
     arg('--model-names', nargs="+")
-    arg('--offset', type=int, default=0)
+    arg('--offset', type=int, default=3)
     args = parser.parse_args()
 
     Path("data/cache/predictions/").mkdir(exist_ok=True, parents=True)
