@@ -1,0 +1,5 @@
+.git
+**/*.pth
+**/*.np
+**/*.tfrecord
+**/__pycache__
