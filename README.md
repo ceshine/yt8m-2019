@@ -2,6 +2,8 @@
 
 (WIP) This is the final states of the codebase at the end of the competition. Code cleanup and documentation are under way.
 
+A brief model summary can be found [here](https://www.kaggle.com/c/youtube8m-2019/discussion/112349). A more detailed summary will be added later as a paper.
+
 ## System Environment
 
 A conda [environment.yml](enviroment.yml) generated from running `conda env export` command is provided.
