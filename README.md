@@ -99,3 +99,7 @@ The submission file will be create as `sub.csv` at the project root folder.
 ## Troubleshooting
 
 - **RuntimeError: received 0 items of ancdata**: [Increasing ulimit and file descriptors limit on Linux](https://glassonionblog.wordpress.com/2013/01/27/increase-ulimit-and-file-descriptors-limit/).
+
+## Potential Improvements
+
+1. **Config-file-based model creation**: currently the entire PyTorch model object is pickled into a file on disk. This is to avoid remembering the hyper-parameters when restoring models, and thus acclerate model iteration. However, it is not considered the best practice. Storing the hyper-parameters in a config file is a better solution. I'll have to do some research to find out how to implement this properly.
