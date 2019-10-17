@@ -74,6 +74,15 @@ In addition to the disk space for the datasets, 100 GB extra space is needed for
 
 Local computer can only be used to train context-agnostic models, make inference, and create submission files. Video-level model pre-training and context-aware models requries at least T4 to run.
 
+### Time to train the models
+
+The pre-training of the NeXtVLAD model took 15 hours on a Tesla P100 GPU. And the pre-training of a context-gated DBoF model took about 13 hours on a Tesla T4 GPU (this is a rough estimate from logs because the GCP instance was preempted several times during training).
+
+The training/fine-tuning of context-agnostic models took 4 to 5 minutes per 1,000 steps for both NeXtVLAD and
+context-gated DBoF models on a GTX 1070 GPU.
+
+The training of context-aware models took 8 to 12 minutes per 1,000 steps on a Tesla T4 GPU.
+
 ## Reproduction Instructions
 
 1. pretraining: `bash scripts/pretraning.bash`
