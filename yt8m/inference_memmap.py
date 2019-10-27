@@ -9,12 +9,13 @@ import pandas as pd
 from tqdm import tqdm
 import numpy as np
 import joblib
+import yaml
 
-from .train_pure_segment import DATA_DIR_STR
+from .train_pure_segment import DATA_DIR_STR, prepare_model as prepare_agnostic_model
+from .train_segment_w_context import prepare_model as prepare_aware_model
 from .dataloader import YoutubeTestDataset, DataLoader, collate_test_segments
 from .telegram_tokens import BOT_TOKEN, CHAT_ID
 from .telegram_sender import telegram_sender
-from .encoders import TimeFirstBatchNorm1d
 
 BATCH_SIZE = 32
 
@@ -30,11 +31,18 @@ def collect_file_paths():
     return list(glob.glob(str(DATA_DIR_STR + "test/*.tfrecord")))
 
 
-def patch(model):
-    for module in model.modules():
-        if isinstance(module, TimeFirstBatchNorm1d):
-            if "groups" not in module.__dict__:
-                module.groups = None
+def prepare_model(model_path):
+    with open(model_path / "config.yaml") as fin:
+        config = yaml.load(fin)
+    state_dict = torch.load(str(model_path / "model.pth"))
+    if "context_base" in config:
+        # context-aware model
+        model = prepare_aware_model(config)
+    else:
+        # context-agnostic model
+        model = prepare_agnostic_model(config)
+    model.load_state_dict(state_dict)
+    return model
 
 
 @telegram_sender(token=BOT_TOKEN, chat_id=CHAT_ID, name="Inferencing")
@@ -50,8 +58,8 @@ def main():
     model_dir = Path(args.model_dir)
     model_paths = []
     if args.model_names is None:
-        for filepath in glob.glob(str(model_dir / "*.pth")):
-            model_paths.append(Path(filepath))
+        for filepath in glob.glob(str(model_dir / "*" / "model.pth")):
+            model_paths.append(Path(filepath).parent)
     else:
         for model_name in args.model_names:
             model_paths.append(model_dir / model_name)
@@ -68,12 +76,12 @@ def main():
         models = []
         predictions = []
         for model_path in model_paths:
-            target_path = f"data/cache/predictions/{model_path.stem}.np"
+            target_path = f"data/cache/predictions/{model_path.stem}.npy"
             if Path(target_path).exists():
                 print("Skipping ", model_path.stem)
                 continue
             print(model_path.stem)
-            model = torch.load(str(model_path))
+            model = prepare_model(model_path)
             models.append(model.eval())
             predictions.append(np.memmap(
                 target_path,

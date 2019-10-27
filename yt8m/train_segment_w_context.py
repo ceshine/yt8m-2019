@@ -36,7 +36,7 @@ DATA_DIR_STR = './data/segment/'
 NO_DECAY = ['bias', 'LayerNorm.weight', 'BatchNorm.weight']
 
 
-def prepare_models(config, *, context_state_dict, segment_state_dict):
+def prepare_model(config, *, context_state_dict=None, segment_state_dict=None):
     # Restore the video model for the context encoder
     context_model = create_video_model(config["context_base"]["model"])
     if context_state_dict is not None:
@@ -113,7 +113,7 @@ def main():
         segment_config = yaml.load(fin)
     config["segment_base"] = segment_config["video"]
     segment_state_dict = torch.load(str(segment_model_dir / "model.pth"))
-    model = prepare_models(
+    model = prepare_model(
         config,
         context_state_dict=context_state_dict,
         segment_state_dict=segment_state_dict)

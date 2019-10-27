@@ -127,7 +127,7 @@ def get_loaders(batch_size, fold, seed=42, offset=0):
     raise ValueError("Shouldn't have reached here! KFold settings are off.")
 
 
-def prepare_models(config, state_dict=None):
+def prepare_model(config, *, state_dict=None):
     segment_model = create_video_model(config["video"]["model"])
     if state_dict is not None:
         segment_model.load_state_dict(state_dict)
@@ -163,7 +163,7 @@ def main():
         video_config = yaml.load(fin)
     config.update(video_config)
     state_dict = torch.load(str(base_model_dir / "model.pth"))
-    model = prepare_models(config, state_dict=state_dict)
+    model = prepare_model(config, state_dict=state_dict)
 
     print(model)
     lr = float(training_config["lr"])
