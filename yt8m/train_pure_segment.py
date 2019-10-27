@@ -8,6 +8,7 @@ from datetime import datetime
 
 import torch
 # from torch.optim.lr_scheduler import CosineAnnealingLR
+import yaml
 import numpy as np
 from helperbot import (
     BaseBot, WeightDecayOptimizerWrapper,
@@ -25,7 +26,7 @@ from .dataloader import YoutubeSegmentDataset, DataLoader, collate_segments
 from .loss import SampledCrossEntropyLoss
 from .telegram_tokens import BOT_TOKEN, CHAT_ID
 from .telegram_sender import telegram_sender
-from .encoders import TimeFirstBatchNorm1d
+from .train_video import create_video_model
 
 CACHE_DIR = Path('./data/cache/segment/')
 CACHE_DIR.mkdir(exist_ok=True, parents=True)
@@ -109,58 +110,61 @@ def collect_file_paths():
     return list(glob.glob(str(DATA_DIR_STR + "train/*.tfrecord")))
 
 
-def get_loaders(args, seed=42, offset=0):
+def get_loaders(batch_size, fold, seed=42, offset=0):
     kfold = KFold(n_splits=8, shuffle=True, random_state=42)
     file_paths = np.array(collect_file_paths())
     for i, (train_idx, valid_idx) in enumerate(kfold.split(file_paths)):
-        if i == args.fold:
+        if i == fold:
             train_ds = YoutubeSegmentDataset(
                 file_paths[train_idx], epochs=None, offset=offset, seed=seed)
             train_loader = DataLoader(
-                train_ds, num_workers=1, batch_size=args.batch_size, collate_fn=collate_segments)
+                train_ds, num_workers=1, batch_size=batch_size, collate_fn=collate_segments)
             valid_ds = YoutubeSegmentDataset(
                 file_paths[valid_idx], epochs=1, offset=offset)
             valid_loader = DataLoader(
-                valid_ds, num_workers=1, batch_size=args.batch_size, collate_fn=collate_segments)
+                valid_ds, num_workers=1, batch_size=batch_size, collate_fn=collate_segments)
             return train_loader, valid_loader
     raise ValueError("Shouldn't have reached here! KFold settings are off.")
 
 
-def patch(model):
-    for module in model.modules():
-        if isinstance(module, TimeFirstBatchNorm1d):
-            if "groups" not in module.__dict__:
-                module.groups = None
-    return model
-
-
-def prepare_models(args):
-    model_dir = Path(args.model_dir)
-    segment_model = patch(torch.load(str(model_dir / args.segment_model)))
+def prepare_models(config, state_dict=None):
+    segment_model = create_video_model(config["video"]["model"])
+    if state_dict is not None:
+        segment_model.load_state_dict(state_dict)
     if isinstance(segment_model, SampleFrameModelWrapper):
         segment_model = segment_model.model
-    return SegmentModelWrapper(segment_model)
+    return SegmentModelWrapper(segment_model), config
 
 
 @telegram_sender(token=BOT_TOKEN, chat_id=CHAT_ID, name="Training on Segment")
 def main():
     parser = argparse.ArgumentParser()
     arg = parser.add_argument
-    arg('model_dir', type=str)
-    arg('segment_model', type=str)
-    arg('--batch-size', type=int, default=32)
-    arg('--lr', type=float, default=3e-4)
-    arg('--steps', type=int, default=30000)
-    arg('--offset', type=int, default=0)
-    arg('--ckpt-interval', type=int, default=4000)
+    arg('base_model_dir', type=str)
+    arg('config', type=str)
+    arg('--steps', type=int, default=-1)
     arg('--fold', type=int, default=0)
     arg('--name', type=str, default="model")
     args = parser.parse_args()
-
+    with open(args.config) as fin:
+        config = yaml.load(fin)
+    training_config = config["pure_segment"]["training"]
     train_loader, valid_loader = get_loaders(
-        args, seed=int(os.environ.get("SEED", "9293")), offset=args.offset)
+        training_config["batch_size"], fold=args.fold,
+        seed=int(os.environ.get("SEED", "9293")),
+        offset=training_config["offset"])
 
-    model = prepare_models(args)
+    if args.steps > 0:
+        # override
+        training_config["steps"] = args.steps
+
+    base_model_dir = Path(args.base_model_dir)
+    with open(base_model_dir / "config.yaml") as fin:
+        video_config = yaml.load(fin)
+    config.update(video_config)
+    state_dict = torch.load(str(base_model_dir / "model.pth"))
+    model, video_config = prepare_models(config, state_dict=state_dict)
+
     print(model)
     optimizer_grouped_parameters = [
         {
@@ -175,13 +179,16 @@ def main():
         }
     ]
     optimizer = WeightDecayOptimizerWrapper(
-        torch.optim.Adam(optimizer_grouped_parameters, lr=args.lr, eps=1e-7),
-        [0.02, 0]
+        torch.optim.Adam(
+            optimizer_grouped_parameters,
+            lr=float(training_config["lr"]),
+            eps=float(training_config["eps"])),
+        [training_config["weight_decay"], 0]
     )
     # optimizer = torch.optim.Adam(
     #     optimizer_grouped_parameters, lr=args.lr, eps=1e-7)
 
-    n_steps = args.steps
+    n_steps = training_config["steps"]
     checkpoints = CheckpointCallback(
         keep_n_checkpoints=1,
         checkpoint_dir=CACHE_DIR / "model_cache/",
@@ -216,15 +223,19 @@ def main():
         pbar=True, use_tensorboard=False
     )
     bot.train(
-        total_steps=n_steps, checkpoint_interval=args.ckpt_interval
+        total_steps=n_steps, checkpoint_interval=training_config["ckpt_interval"]
     )
     bot.load_model(checkpoints.best_performers[0][1])
     checkpoints.remove_checkpoints(keep=0)
 
+    target_dir = (MODEL_DIR /
+                  f"{args.name}_{args.fold}_{datetime.now().strftime('%Y%m%d-%H%M')}")
+    target_dir.mkdir(parents=True)
     torch.save(
-        bot.model, MODEL_DIR /
-        f"{args.name}_{args.fold}_{datetime.now().strftime('%Y%m%d-%H%M')}.pth"
+        bot.model.state_dict(), target_dir / "model.pth"
     )
+    with open(target_dir / "config.yaml", "w") as fout:
+        fout.write(yaml.dump(config, default_flow_style=False))
 
 
 if __name__ == "__main__":

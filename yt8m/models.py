@@ -5,8 +5,7 @@ import numpy as np
 
 from .encoders import (
     NeXtVLAD, general_weight_initialization,
-    SEModule, TimeFirstBatchNorm1d, BNSEModule,
-    BNSE1dModule
+    BNSEModule, BNSE1dModule
 )
 
 
