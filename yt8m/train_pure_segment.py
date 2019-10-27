@@ -133,15 +133,15 @@ def prepare_models(config, state_dict=None):
         segment_model.load_state_dict(state_dict)
     if isinstance(segment_model, SampleFrameModelWrapper):
         segment_model = segment_model.model
-    return SegmentModelWrapper(segment_model), config
+    return SegmentModelWrapper(segment_model)
 
 
 @telegram_sender(token=BOT_TOKEN, chat_id=CHAT_ID, name="Training on Segment")
 def main():
     parser = argparse.ArgumentParser()
     arg = parser.add_argument
-    arg('base_model_dir', type=str)
     arg('config', type=str)
+    arg('base_model_dir', type=str)
     arg('--steps', type=int, default=-1)
     arg('--fold', type=int, default=0)
     arg('--name', type=str, default="model")
@@ -163,30 +163,30 @@ def main():
         video_config = yaml.load(fin)
     config.update(video_config)
     state_dict = torch.load(str(base_model_dir / "model.pth"))
-    model, video_config = prepare_models(config, state_dict=state_dict)
+    model = prepare_models(config, state_dict=state_dict)
 
     print(model)
+    lr = float(training_config["lr"])
     optimizer_grouped_parameters = [
         {
             'params': [p for n, p in model.named_parameters()
                        if not any(nd in n for nd in NO_DECAY)],
-            'lr': args.lr
+            'lr': lr
         },
         {
             'params': [p for n, p in model.named_parameters()
                        if any(nd in n for nd in NO_DECAY)],
-            'lr': args.lr
+            'lr': lr
         }
     ]
     optimizer = WeightDecayOptimizerWrapper(
         torch.optim.Adam(
             optimizer_grouped_parameters,
-            lr=float(training_config["lr"]),
-            eps=float(training_config["eps"])),
+            lr=lr, eps=float(training_config["eps"])),
         [training_config["weight_decay"], 0]
     )
     # optimizer = torch.optim.Adam(
-    #     optimizer_grouped_parameters, lr=args.lr, eps=1e-7)
+    #     optimizer_grouped_parameters, lr=lr, eps=1e-7)
 
     n_steps = training_config["steps"]
     checkpoints = CheckpointCallback(
@@ -228,6 +228,7 @@ def main():
     bot.load_model(checkpoints.best_performers[0][1])
     checkpoints.remove_checkpoints(keep=0)
 
+    # save the model
     target_dir = (MODEL_DIR /
                   f"{args.name}_{args.fold}_{datetime.now().strftime('%Y%m%d-%H%M')}")
     target_dir.mkdir(parents=True)
