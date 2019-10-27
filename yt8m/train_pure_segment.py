@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from datetime import datetime
 
 import torch
-from torch.optim.lr_scheduler import CosineAnnealingLR
+# from torch.optim.lr_scheduler import CosineAnnealingLR
 import numpy as np
 from helperbot import (
     BaseBot, WeightDecayOptimizerWrapper,

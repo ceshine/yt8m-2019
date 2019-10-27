@@ -155,27 +155,6 @@ class GatedDBofEncoder(nn.Module):
         return pooled
 
 
-class DBofEncoder(nn.Module):
-    def __init__(self, full_model):
-        super().__init__()
-        self.encoder = full_model.encoder
-
-    def forward(self, features):
-        """Encoder, Pool, Predit
-            expected shape of 'features': (n_batch, seq_len, input_dim)
-        """
-        # shape (n_batch, seq_len, hidden_dim)
-        encoded = self.encoder(features)
-        # shape (n_batch, hidden_dim, seq_len)
-        encoded = encoded.transpose(2, 1)
-        # shape (n_batch, hidden_dim)
-        max_pooled = F.adaptive_max_pool1d(encoded, 1).squeeze(2)
-        avg_pooled = F.adaptive_avg_pool1d(encoded, 1).squeeze(2)
-        # shape (n_batch, hidden_dim * 2)
-        pooled = torch.cat([max_pooled, avg_pooled], dim=1)
-        return pooled
-
-
 class GatedDBofContextEncoder(nn.Module):
     def __init__(self, full_model):
         super().__init__()
@@ -192,60 +171,6 @@ class GatedDBofContextEncoder(nn.Module):
         pooled = self.pooler(encoded, masks=masks)
         hidden = self.intermediate_fc(pooled)
         return hidden
-
-
-class DBofContextEncoder(nn.Module):
-    def __init__(self, full_model):
-        super().__init__()
-        self.encoder = full_model.encoder
-        self.intermediate_fc = full_model.intermediate_fc[:4]
-        self.se_reduction = 0
-        if "se_reduction" in full_model.__dict__ and full_model.se_reduction > 0:
-            self.se_reduction = full_model.se_reduction
-            self.se_gating = full_model.se_gating
-
-    def forward(self, features, masks=None):
-        """Encoder, Pool, Predit
-            expected shape of 'features': (n_batch, seq_len, input_dim)
-        """
-        # shape (n_batch, seq_len, hidden_dim)
-        encoded = self.encoder(features)
-        # shape (n_batch, hidden_dim, seq_len)
-        encoded = encoded.transpose(2, 1)
-        if masks is not None:
-            # max pooling:
-            # shape (n_batch, hidden_dim):
-            max_pooled, _ = torch.max(
-                encoded * masks.unsqueeze(1),
-                dim=2
-            )
-            # mean pooling:
-            avg_pooled = torch.mean(
-                encoded * masks.unsqueeze(1),
-                dim=2
-            )
-        else:
-            # shape (n_batch, hidden_dim)
-            max_pooled = F.adaptive_max_pool1d(encoded, 1).squeeze(2)
-            avg_pooled = F.adaptive_avg_pool1d(encoded, 1).squeeze(2)
-        # shape (n_batch, hidden_dim * 2)
-        pooled = torch.cat([max_pooled, avg_pooled], dim=1)
-        # shape (n_batch, hidden_dim // 8)
-        hidden = self.intermediate_fc(pooled)
-        if "se_reduction" in self.__dict__ and self.se_reduction > 0:
-            hidden = self.se_gating(hidden)
-        return hidden
-
-
-class DBofCSModel(ContextualSegmentModel):
-    def __init__(self, context_model, segment_model, fcn_dim, p_drop, n_classes=1000, num_mixtures=2, se_reduction=0):
-        # segment_dim = segment_model.encoder[0].out_features * 2
-        segment_dim = segment_model.intermediate_fc[-1].num_features
-        segment_model = DBofContextEncoder(segment_model)
-        context_dim = context_model.intermediate_fc[-1].num_features
-        context_model = DBofContextEncoder(context_model)
-        super().__init__(context_model, segment_model, context_dim, segment_dim,
-                         fcn_dim, p_drop, n_classes, num_mixtures, se_reduction)
 
 
 class NeXtVLADEncoder(nn.Module):
@@ -284,28 +209,6 @@ class NeXtVLADEncoder(nn.Module):
             return torch.cat([video_encoded, audio_encoded], dim=1)
 
 
-class NetVLADEncoder(nn.Module):
-    def __init__(self, full_model):
-        super().__init__()
-        self.video_encoder = full_model.video_encoder
-        self.audio_encoder = full_model.audio_encoder
-        self.video_dim = full_model.video_dim
-        self.audio_dim = full_model.audio_dim
-        self.intermediate_fc = full_model.intermediate_fc
-
-    def forward(self, features, masks=None):
-        # shape (n_batch, dim * n_cluster)
-        video_encoded = self.video_encoder(
-            features[:, :, :self.video_dim], masks)
-        audio_encoded = self.audio_encoder(
-            features[:, :, self.video_dim:], masks)
-        # shape (n_batch, fcn_dim)
-        fcn_output = self.intermediate_fc(
-            torch.cat([video_encoded, audio_encoded], dim=1)
-        )
-        return fcn_output
-
-
 class NeXtVLADCSModel(ContextualSegmentModel):
     def __init__(
             self, context_model, segment_model, fcn_dim, p_drop, n_classes=1000,
@@ -326,17 +229,3 @@ class NeXtVLADCSModel(ContextualSegmentModel):
             context_model, segment_model, context_dim, segment_dim,
             fcn_dim, p_drop, n_classes,
             num_mixtures, se_reduction, max_video_len)
-
-
-class NetVLADCSModel(ContextualSegmentModel):
-    def __init__(self, context_model, segment_model, fcn_dim, p_drop, n_classes=1000, num_mixtures=2, se_reduction=0):
-        # segment_dim = (
-        #     (segment_model.audio_encoder.num_clusters * segment_model.audio_dim +
-        #      segment_model.video_encoder.num_clusters * segment_model.video_dim)
-        # )
-        segment_dim = segment_model.intermediate_fc[0].out_features
-        context_dim = context_model.intermediate_fc[0].out_features
-        segment_model = NetVLADEncoder(segment_model)
-        context_model = NetVLADEncoder(context_model)
-        super().__init__(context_model, segment_model, context_dim, segment_dim,
-                         fcn_dim, p_drop, n_classes, num_mixtures, se_reduction)

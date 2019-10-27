@@ -1,37 +1,30 @@
 import os
-import glob
 import argparse
 from pathlib import Path
-from typing import Tuple
-from dataclasses import dataclass
 from datetime import datetime
 
 import torch
 # from torch.optim.lr_scheduler import CosineAnnealingLR
 import numpy as np
 from helperbot import (
-    BaseBot, WeightDecayOptimizerWrapper,
+    WeightDecayOptimizerWrapper,
     LearningRateSchedulerCallback,
     MovingAverageStatsTrackerCallback,
     CheckpointCallback, MultiStageScheduler, LinearLR
 )
 
 from .models import (
-    BasicMoeModel, NeXtVLADModel, NetVladModel, DBoFModel, SampleFrameModelWrapper
+    NeXtVLADModel, GatedDBoFModel, SampleFrameModelWrapper
 )
 from .segment_models import (
-    ContextualSegmentModel, DBofContextEncoder, DBofEncoder,
-    NeXtVLADEncoder, NetVLADEncoder,
-    GatedDBofContextEncoder, GatedDBofEncoder
+    ContextualSegmentModel, NeXtVLADEncoder,
+    GatedDBofContextEncoder
 )
 from .loss import SampledCrossEntropyLoss
 from .telegram_tokens import BOT_TOKEN, CHAT_ID
 from .telegram_sender import telegram_sender
-from .encoders import TimeFirstBatchNorm1d
 from .train_pure_segment import (
-    Accuracy, AUC, MaskedNegativeAccuracy,
-    YoutubeBot, collect_file_paths, get_loaders,
-    patch
+    YoutubeBot, get_loaders,  patch
 )
 
 CACHE_DIR = Path('./data/cache/segment/')
@@ -50,36 +43,22 @@ def prepare_models(args):
     segment_model = patch(torch.load(str(model_dir / args.segment_model)))
     if isinstance(segment_model, SampleFrameModelWrapper):
         segment_model = segment_model.model
-    if isinstance(segment_model, BasicMoeModel):
-        # segment_dim = segment_model.encoder[0].out_features * 2
-        # segment_model = DBofEncoder(segment_model)
-        segment_dim = segment_model.intermediate_fc[0].out_features
-        segment_model = DBofContextEncoder(segment_model)
-    elif isinstance(segment_model, NeXtVLADModel):
+    if isinstance(segment_model, NeXtVLADModel):
         segment_dim = segment_model.intermediate_fc[0].out_features
         segment_model = NeXtVLADEncoder(
             segment_model, vlad_only=False, truncate_intermediate=True)
-    elif isinstance(segment_model, NetVladModel):
-        segment_dim = segment_model.intermediate_fc[0].out_features
-        segment_model = NetVLADEncoder(segment_model)
-    elif isinstance(segment_model, DBoFModel):
+    elif isinstance(segment_model, GatedDBoFModel):
         # segment_dim = segment_model.intermediate_fc[0].num_features
         # segment_model = GatedDBofEncoder(segment_model)
         segment_dim = segment_model.expert_fc[-1].in_features
         segment_model = GatedDBofContextEncoder(segment_model)
     else:
         raise ValueError("Model not supported yet!")
-    if isinstance(context_model, BasicMoeModel):
-        context_dim = context_model.expert_fc[-1].in_features
-        context_model = DBofContextEncoder(context_model)
-    elif isinstance(context_model, NeXtVLADModel):
+    if isinstance(context_model, NeXtVLADModel):
         context_dim = context_model.intermediate_fc[0].out_features
         context_model = NeXtVLADEncoder(
             context_model, vlad_only=False, truncate_intermediate=False)
-    elif isinstance(context_model, NetVladModel):
-        context_dim = context_model.intermediate_fc[0].out_features
-        context_model = NetVLADEncoder(context_model)
-    elif isinstance(context_model, DBoFModel):
+    elif isinstance(context_model, GatedDBoFModel):
         context_dim = context_model.expert_fc[-1].in_features
         context_model = GatedDBofContextEncoder(context_model)
     else:

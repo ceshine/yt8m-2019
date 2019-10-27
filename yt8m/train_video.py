@@ -15,18 +15,11 @@ from helperbot import (
     CheckpointCallback, MultiStageScheduler, LinearLR
 )
 from helperbot.metrics import Metric
-from sklearn.metrics import roc_auc_score
 
 from .dataloader import YoutubeVideoDataset, DataLoader, collate_videos
-from .models import BasicMoeModel, NetVladModel, NeXtVLADModel, DBoFModel, SampleFrameModelWrapper
+from .models import NeXtVLADModel, GatedDBoFModel, SampleFrameModelWrapper
 from .telegram_tokens import BOT_TOKEN, CHAT_ID
 from .telegram_sender import telegram_sender
-
-try:
-    from apex import amp
-    APEX_AVAILABLE = True
-except ModuleNotFoundError:
-    APEX_AVAILABLE = False
 
 CACHE_DIR = Path('./data/cache/video')
 CACHE_DIR.mkdir(exist_ok=True, parents=True)
@@ -178,8 +171,7 @@ def train_from_start(args, model, optimizer, train_loader, valid_loader):
             ),
             checkpoints,
         ],
-        pbar=True, use_tensorboard=False,
-        use_amp=(args.amp != '')
+        pbar=True, use_tensorboard=False
     )
     bot.train(
         total_steps=n_steps, checkpoint_interval=args.ckpt_interval
@@ -201,7 +193,6 @@ def main():
     arg('--from-checkpoint', type=str, default='')
     arg('--n-clusters', type=int, default=64)
     arg('--groups', type=int, default=8)
-    arg('--amp', type=str, default='')
     arg('--batch-size', type=int, default=32)
     arg('--fcn-dim', type=int, default=2048)
     arg('--max-len', type=int, default=-1)
@@ -211,7 +202,7 @@ def main():
 
     if args.model == "dbof":
         model = SampleFrameModelWrapper(
-            DBoFModel(
+            GatedDBoFModel(
                 hidden_dim=4096, p_drop=0.5, fcn_dim=args.fcn_dim,
                 num_mixtures=args.n_mixtures, per_class=False,
                 frame_se_reduction=8, video_se_reduction=4,
@@ -248,12 +239,6 @@ def main():
         torch.optim.Adam(optimizer_grouped_parameters, lr=args.lr, eps=1e-6),
         0.1
     )
-    if args.amp:
-        if not APEX_AVAILABLE:
-            raise ValueError("Apex is not installed!")
-        model, optimizer = amp.initialize(
-            model, optimizer, opt_level=args.amp
-        )
 
     if args.from_checkpoint:
         resume_training(args, model, optimizer, train_loader, valid_loader)
