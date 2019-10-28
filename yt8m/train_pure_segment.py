@@ -147,7 +147,7 @@ def main():
     arg('--name', type=str, default="model")
     args = parser.parse_args()
     with open(args.config) as fin:
-        config = yaml.load(fin)
+        config = yaml.safe_load(fin)
     training_config = config["pure_segment"]["training"]
     train_loader, valid_loader = get_loaders(
         training_config["batch_size"], fold=args.fold,
@@ -160,7 +160,7 @@ def main():
 
     base_model_dir = Path(args.base_model_dir)
     with open(base_model_dir / "config.yaml") as fin:
-        video_config = yaml.load(fin)
+        video_config = yaml.safe_load(fin)
     config.update(video_config)
     state_dict = torch.load(str(base_model_dir / "model.pth"))
     model = prepare_model(config, state_dict=state_dict)

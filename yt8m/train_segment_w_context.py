@@ -92,7 +92,7 @@ def main():
     arg('--name', type=str, default="context_model")
     args = parser.parse_args()
     with open(args.config) as fin:
-        config = yaml.load(fin)
+        config = yaml.safe_load(fin)
     training_config = config["segment_w_context"]["training"]
     train_loader, valid_loader = get_loaders(
         training_config["batch_size"], fold=args.fold,
@@ -105,12 +105,12 @@ def main():
 
     context_model_dir = Path(args.context_model_dir)
     with open(context_model_dir / "config.yaml") as fin:
-        context_config = yaml.load(fin)
+        context_config = yaml.safe_load(fin)
     config["context_base"] = context_config["video"]
     context_state_dict = torch.load(str(context_model_dir / "model.pth"))
     segment_model_dir = Path(args.segment_model_dir)
     with open(segment_model_dir / "config.yaml") as fin:
-        segment_config = yaml.load(fin)
+        segment_config = yaml.safe_load(fin)
     config["segment_base"] = segment_config["video"]
     segment_state_dict = torch.load(str(segment_model_dir / "model.pth"))
     model = prepare_model(
@@ -167,7 +167,7 @@ def main():
             len(optimizer_grouped_parameters) // 2)
     )
 
-    n_steps = args.steps
+    n_steps = training_config["steps"]
     checkpoints = CheckpointCallback(
         keep_n_checkpoints=1,
         checkpoint_dir=CACHE_DIR / "model_cache/",

@@ -33,7 +33,7 @@ def collect_file_paths():
 
 def prepare_model(model_path):
     with open(model_path / "config.yaml") as fin:
-        config = yaml.load(fin)
+        config = yaml.safe_load(fin)
     state_dict = torch.load(str(model_path / "model.pth"))
     if "context_base" in config:
         # context-aware model

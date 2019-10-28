@@ -42,7 +42,7 @@ def main():
     predictions = []
     with open(f"data/cache/inference/{datetime.now().strftime('log_%m%d_%H%M')}.txt", "w") as fout:
         if args.model_names is None:
-            for filepath in glob.glob(str(model_dir / "*.np")):
+            for filepath in glob.glob(str(model_dir / "*.npy")):
                 print(filepath)
                 fout.write(Path(filepath).stem + "\n")
                 predictions.append(np.memmap(

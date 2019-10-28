@@ -11,7 +11,7 @@ def general_weight_initialization(module: nn.Module):
             nn.init.constant_(module.bias, 0)
     elif isinstance(module, nn.Linear):
         nn.init.kaiming_normal_(module.weight)
-        print("Initing linear")
+        # print("Initing linear")
         if module.bias is not None:
             nn.init.constant_(module.bias, 0)
 
