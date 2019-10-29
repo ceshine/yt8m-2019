@@ -1,0 +1,16 @@
+segment_w_context:
+  model:
+    fcn_dim: 2048
+    p_drop: 0.5
+    se_reduction: 4
+    max_len: 150
+    finetune_context: false
+    n_mixture: 4
+  training:
+    lr: 2e-4
+    batch_size: 64
+    steps: 9000
+    ckpt_interval: 3000
+    offset: 3
+    weight_decay: 0.02
+    eps: 1e-7

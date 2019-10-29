@@ -11,8 +11,6 @@ from tqdm import tqdm
 import numpy as np
 import joblib
 
-from .train_pure_segment import DATA_DIR_STR
-from .dataloader import YoutubeTestDataset, DataLoader, collate_test_segments
 from .telegram_tokens import BOT_TOKEN, CHAT_ID
 from .telegram_sender import telegram_sender
 
