@@ -37,6 +37,7 @@ class YoutubeSegmentDataset(IterableDataset):
                  vocab_path="./data/segment_vocabulary.csv",
                  epochs=1, max_examples=None, offset=0):
         super(YoutubeSegmentDataset).__init__()
+        print("Offset:", offset)
         self.file_paths = file_paths
         self.seed = seed
         self.debug = debug

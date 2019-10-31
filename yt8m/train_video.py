@@ -3,10 +3,12 @@ import glob
 import argparse
 from pathlib import Path
 from typing import Tuple
+from datetime import datetime
 from dataclasses import dataclass
 
 import torch
 # from torch.optim.lr_scheduler import CosineAnnealingLR
+import yaml
 import numpy as np
 from helperbot import (
     BaseBot, WeightDecayOptimizerWrapper,
@@ -15,18 +17,11 @@ from helperbot import (
     CheckpointCallback, MultiStageScheduler, LinearLR
 )
 from helperbot.metrics import Metric
-from sklearn.metrics import roc_auc_score
 
 from .dataloader import YoutubeVideoDataset, DataLoader, collate_videos
-from .models import BasicMoeModel, NetVladModel, NeXtVLADModel, DBoFModel, SampleFrameModelWrapper
+from .models import NeXtVLADModel, GatedDBoFModel, SampleFrameModelWrapper
 from .telegram_tokens import BOT_TOKEN, CHAT_ID
 from .telegram_sender import telegram_sender
-
-try:
-    from apex import amp
-    APEX_AVAILABLE = True
-except ModuleNotFoundError:
-    APEX_AVAILABLE = False
 
 CACHE_DIR = Path('./data/cache/video')
 CACHE_DIR.mkdir(exist_ok=True, parents=True)
@@ -113,24 +108,26 @@ def collect_file_paths(base_folder="train"):
     return list(glob.glob(str(DATA_DIR_STR + f"{base_folder}/*.tfrecord")))
 
 
-def get_loaders(args):
+def get_loaders(config):
     file_paths = collect_file_paths()
     train_ds = YoutubeVideoDataset(
         file_paths, epochs=None, seed=int(os.environ.get("SEED", 42)))
     train_loader = DataLoader(
-        train_ds, num_workers=4, batch_size=args.batch_size, collate_fn=collate_videos)
+        train_ds, num_workers=4, batch_size=config['training']['batch_size'],
+        collate_fn=collate_videos)
     file_paths = collect_file_paths(base_folder="valid")
     valid_ds = YoutubeVideoDataset(
         file_paths, epochs=None, max_examples=32*4000/4)
     valid_loader = DataLoader(
         valid_ds, num_workers=4,
-        batch_size=args.batch_size, collate_fn=collate_videos)
+        batch_size=config['training']['batch_size'],
+        collate_fn=collate_videos)
     return train_loader, valid_loader
 
 
-def resume_training(args, model, optimizer, train_loader, valid_loader):
+def resume_training(config, checkpoint_path, model, optimizer, train_loader, valid_loader):
     bot = YoutubeVideoBot.load_checkpoint(
-        args.from_checkpoint, train_loader, valid_loader,
+        checkpoint_path, train_loader, valid_loader,
         model, optimizer
     )
     checkpoints = None
@@ -138,17 +135,18 @@ def resume_training(args, model, optimizer, train_loader, valid_loader):
         if isinstance(callback, CheckpointCallback):
             checkpoints = callback
             break
-    # We could reset the checkpoints
-    checkpoints.reset(ignore_previous=True)
-    bot.train(checkpoint_interval=args.ckpt_interval)
+    if checkpoints:
+        # We could reset the checkpoints
+        checkpoints.reset(ignore_previous=True)
+    bot.train(checkpoint_interval=config['ckpt_interval'])
     if checkpoints:
         bot.load_model(checkpoints.best_performers[0][1])
-        torch.save(bot.model, MODEL_DIR / "baseline_model.pth")
         checkpoints.remove_checkpoints(keep=0)
+    return bot
 
 
-def train_from_start(args, model, optimizer, train_loader, valid_loader):
-    n_steps = args.steps
+def train_from_start(config, model, optimizer, train_loader, valid_loader):
+    n_steps = config['steps']
     break_points = [0, int(n_steps*0.2)]
     lr_durations = np.diff(break_points + [n_steps])
     checkpoints = CheckpointCallback(
@@ -178,60 +176,64 @@ def train_from_start(args, model, optimizer, train_loader, valid_loader):
             ),
             checkpoints,
         ],
-        pbar=True, use_tensorboard=False,
-        use_amp=(args.amp != '')
+        pbar=True, use_tensorboard=False
     )
     bot.train(
-        total_steps=n_steps, checkpoint_interval=args.ckpt_interval
+        total_steps=n_steps, checkpoint_interval=config['ckpt_interval']
     )
     bot.load_model(checkpoints.best_performers[0][1])
-    torch.save(bot.model, MODEL_DIR / "baseline_model.pth")
     checkpoints.remove_checkpoints(keep=0)
+    return bot
+
+
+def create_video_model(model_config):
+    if model_config["type"] == "dbof":
+        model = SampleFrameModelWrapper(
+            GatedDBoFModel(
+                hidden_dim=model_config["hidden_dim"],
+                p_drop=model_config["p_drop"],
+                fcn_dim=model_config["fcn_dim"],
+                num_mixtures=model_config["n_mixtures"],
+                per_class=model_config["per_class"],
+                frame_se_reduction=model_config["frame_se_reduction"],
+                video_se_reduction=model_config["video_se_reduction"]
+            ).cuda(),
+            max_len=model_config["max_len"]
+        )
+    elif model_config["type"] == "nextvlad":
+        model = SampleFrameModelWrapper(
+            NeXtVLADModel(
+                p_drop=model_config["p_drop"],
+                fcn_dim=model_config["fcn_dim"],
+                groups=model_config["groups"],
+                expansion=2,
+                n_clusters=model_config["n_clusters"],
+                num_mixtures=model_config["n_mixtures"],
+                per_class=model_config["per_class"],
+                add_batchnorm=model_config["add_batchnorm"],
+                se_reduction=model_config["se_reduction"]
+            ).cuda(),
+            max_len=model_config["max_len"]
+        )
+    else:
+        raise ValueError("Unrecognized model: %s" % model_config["type"])
+    return model
 
 
 @telegram_sender(token=BOT_TOKEN, chat_id=CHAT_ID, name="Training on Video")
 def main():
     parser = argparse.ArgumentParser()
     arg = parser.add_argument
-    arg('model', type=str)
-    arg('--lr', type=float, default=5e-4)
-    arg('--steps', type=int, default=80000)
-    arg('--per-class', action="store_true")
-    arg('--ckpt-interval', type=int, default=8000)
+    arg('config', type=str)
     arg('--from-checkpoint', type=str, default='')
-    arg('--n-clusters', type=int, default=64)
-    arg('--groups', type=int, default=8)
-    arg('--amp', type=str, default='')
-    arg('--batch-size', type=int, default=32)
-    arg('--fcn-dim', type=int, default=2048)
-    arg('--max-len', type=int, default=-1)
-    arg('--n-mixtures', type=int, default=4)
     args = parser.parse_args()
-    train_loader, valid_loader = get_loaders(args)
+    with open(args.config) as fin:
+        config = yaml.safe_load(fin)
+    train_loader, valid_loader = get_loaders(config["video"])
 
-    if args.model == "dbof":
-        model = SampleFrameModelWrapper(
-            DBoFModel(
-                hidden_dim=4096, p_drop=0.5, fcn_dim=args.fcn_dim,
-                num_mixtures=args.n_mixtures, per_class=False,
-                frame_se_reduction=8, video_se_reduction=4,
-            ).cuda(),
-            max_len=args.max_len
-        )
-    elif args.model == "nextvlad":
-        model = SampleFrameModelWrapper(
-            NeXtVLADModel(
-                fcn_dim=2048, p_drop=0.5,
-                groups=args.groups, expansion=2,
-                n_clusters=args.n_clusters,
-                num_mixtures=4, per_class=args.per_class,
-                add_batchnorm=True, se_reduction=4
-            ).cuda(),
-            max_len=args.max_len
-        )
-    else:
-        raise ValueError("Unrecognized model: %s" % args.model)
-
+    model_config = config["video"]["model"]
+    training_config = config["video"]["training"]
+    model = create_video_model(model_config)
     print(model)
 
     optimizer_grouped_parameters = [
@@ -245,20 +247,27 @@ def main():
         }
     ]
     optimizer = WeightDecayOptimizerWrapper(
-        torch.optim.Adam(optimizer_grouped_parameters, lr=args.lr, eps=1e-6),
-        0.1
+        torch.optim.Adam(
+            optimizer_grouped_parameters,
+            lr=float(training_config['lr']),
+            eps=float(training_config['eps'])
+        ),
+        [float(training_config['weight_decay']), 0]
     )
-    if args.amp:
-        if not APEX_AVAILABLE:
-            raise ValueError("Apex is not installed!")
-        model, optimizer = amp.initialize(
-            model, optimizer, opt_level=args.amp
-        )
 
     if args.from_checkpoint:
-        resume_training(args, model, optimizer, train_loader, valid_loader)
+        bot = resume_training(
+            training_config, args.from_checkpoint, model,
+            optimizer, train_loader, valid_loader)
     else:
-        train_from_start(args, model, optimizer, train_loader, valid_loader)
+        bot = train_from_start(
+            training_config, model, optimizer,
+            train_loader, valid_loader)
+    target_dir = (MODEL_DIR / datetime.now().strftime("%Y%m%d_%H%M"))
+    target_dir.mkdir(parents=True)
+    torch.save(bot.model.state_dict(), target_dir / "model.pth")
+    with open(target_dir / "config.yaml", "w") as fout:
+        fout.write(yaml.dump(config, default_flow_style=False))
 
 
 if __name__ == "__main__":

@@ -43,5 +43,6 @@ WORKDIR /home/$USERNAME/src
 
 RUN echo "source activate yt8m" > ~/.bashrc
 RUN bash -c "source activate yt8m && pip install PyTorchHelperBot/."
+RUN bash -c "source activate yt8m && pip install pyyaml"
 
 RUN bash

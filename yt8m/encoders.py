@@ -11,7 +11,7 @@ def general_weight_initialization(module: nn.Module):
             nn.init.constant_(module.bias, 0)
     elif isinstance(module, nn.Linear):
         nn.init.kaiming_normal_(module.weight)
-        print("Initing linear")
+        # print("Initing linear")
         if module.bias is not None:
             nn.init.constant_(module.bias, 0)
 
@@ -141,100 +141,6 @@ class BNSE1dModule(nn.Module):
         return module_input * x
 
 
-class NetVLAD(nn.Module):
-    """NetVLAD layer implementation
-
-    Adapted from https://github.com/lyakaap/NetVLAD-pytorch/blob/master/netvlad.py
-    """
-
-    def __init__(self, num_clusters=64, dim=128, alpha=100.0,
-                 normalize_input=True, p_drop=0.25, add_batchnorm=False):
-        """
-        Args:
-            num_clusters : int
-                The number of clusters
-            dim : int
-                Dimension of descriptors
-            alpha : float
-                Parameter of initialization. Larger value is harder assignment.
-            normalize_input : bool
-                If true, descriptor-wise L2 normalization is applied to input.
-        """
-        super().__init__()
-        self.p_drop = p_drop
-        self.cluster_dropout = nn.Dropout2d(p_drop)
-        self.num_clusters = num_clusters
-        self.dim = dim
-        self.alpha = alpha
-        self.normalize_input = normalize_input
-        self.add_batchnorm = add_batchnorm
-        if add_batchnorm:
-            self.soft_assignment_mapper = nn.Sequential(
-                nn.Linear(dim, num_clusters, bias=False),
-                TimeFirstBatchNorm1d(num_clusters)
-            )
-        else:
-            self.soft_assignment_mapper = nn.Linear(
-                dim, num_clusters, bias=True)
-        self.centroids = nn.Parameter(torch.rand(num_clusters, dim))
-        self._init_params()
-
-    def _init_params(self):
-        if self.add_batchnorm:
-            self.soft_assignment_mapper[0].weight = nn.Parameter(
-                (2.0 * self.alpha * self.centroids)
-            )
-            nn.init.constant_(self.soft_assignment_mapper[1].bn.weight, 1)
-            nn.init.constant_(self.soft_assignment_mapper[1].bn.bias, 0)
-        else:
-            self.soft_assignment_mapper.weight = nn.Parameter(
-                (2.0 * self.alpha * self.centroids)
-            )
-            self.soft_assignment_mapper.bias = nn.Parameter(
-                - self.alpha * self.centroids.norm(dim=1)
-            )
-
-    def forward(self, x, masks=None):
-        """NetVlad Adaptive Pooling
-
-        Arguments:
-            x {torch.Tensor} -- shape: (n_batch, len, dim)
-
-        Returns:
-            torch.Tensor -- shape (n_batch, n_cluster * dim)
-        """
-        N, C = x.shape[:2]
-
-        if self.normalize_input:
-            x = F.normalize(x, p=2, dim=2)  # across descriptor dim
-
-        # soft-assignment
-        # shape: (n_batch, len, n_cluster)
-        soft_assign = self.soft_assignment_mapper(x)
-        soft_assign = F.softmax(soft_assign, dim=2)
-
-        # calculate residuals to each clusters
-        if masks is not None:
-            # shape: (n_batch, len, n_cluster)
-            soft_assign = soft_assign * masks[:, :, None]
-        second_term = (
-            soft_assign.sum(dim=1).unsqueeze(2) * self.centroids[None, :, :]
-        )
-        first_term = (soft_assign.unsqueeze(3) * x.unsqueeze(2)).sum(dim=1)
-
-        # vlad shape (n_batch, n_cluster, dim)
-        vlad = first_term - second_term
-        vlad = F.normalize(vlad, p=2, dim=2)  # intra-normalization
-        # flatten shape (n_batch, n_cluster * dim / groups)
-        vlad = vlad.view(x.size(0), -1)  # flatten
-        vlad = F.normalize(vlad, p=2, dim=1)  # L2 normalize
-        if self.p_drop:
-            vlad = self.cluster_dropout(
-                vlad.view(x.size(0), self.num_clusters, self.dim, 1)
-            ).view(x.size(0), -1)
-        return vlad
-
-
 class NeXtVLAD(nn.Module):
     """NeXtVLAD layer implementation
 
@@ -315,8 +221,6 @@ class NeXtVLAD(nn.Module):
         Returns:
             torch.Tensor -- shape (n_batch, n_cluster * dim / groups)
         """
-        N, C = x.shape[:2]
-
         if self.normalize_input:
             x = F.normalize(x, p=2, dim=2)  # across descriptor dim
 
@@ -394,29 +298,5 @@ def test_nextvlad():
     assert output_tensor.size() == (16, 64 * 2 * 128 // 8)
 
 
-def test_netvlad():
-    model = NetVLAD(
-        num_clusters=64, dim=128, alpha=100,
-        normalize_input=True,
-        p_drop=0.25, add_batchnorm=True
-    )
-    # shape (n_batch, len, dim)
-    input_tensor = torch.rand(16, 300, 128)
-    # shape (n_batch, n_clusters * dim )
-    output_tensor = model(input_tensor)
-    assert output_tensor.size() == (16, 64 * 128)
-    model = NetVLAD(
-        num_clusters=64, dim=128, alpha=100,
-        normalize_input=True,
-        p_drop=0.25, add_batchnorm=False
-    )
-    # shape (n_batch, len, dim)
-    input_tensor = torch.rand(16, 300, 128)
-    # shape (n_batch, n_clusters * dim)
-    output_tensor = model(input_tensor)
-    assert output_tensor.size() == (16, 64 * 128)
-
-
 if __name__ == "__main__":
-    test_netvlad()
     test_nextvlad()

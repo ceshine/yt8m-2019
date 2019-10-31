@@ -1,6 +1,5 @@
-SEED=98998 python -m yt8m.train_segment_w_context data/cache/video/ dbof-1.pth nxvlad-2.pth --name dbof-1_nxvlad-2 --steps 12000 --ckpt-interval 4000 --offset 3 --lr 2e-4 --fcn-dim 2048 --drop 0.5 --fold 6 --se-reduction 4 --max-len 150 --batch-size 128
-SEED=93498 python -m yt8m.train_segment_w_context data/cache/video/ dbof-1.pth nxvlad-2.pth --name dbof-1_nxvlad-2 --steps 12000 --ckpt-interval 4000 --offset 3 --lr 2e-4 --fcn-dim 2048 --drop 0.5 --fold 7 --se-reduction 4 --max-len 150 --batch-size 128
-SEED=23498 python -m yt8m.train_segment_w_context data/cache/video/ dbof-2.pth nxvlad-2.pth --name dbof-2_nxvlad-2 --steps 12000 --ckpt-interval 3000 --offset 3 --lr 2e-4 --fcn-dim 2048 --drop 0.5 --fold 5 --se-reduction 4 --max-len 150 --batch-size 128
-SEED=18448 python -m yt8m.train_segment_w_context data/cache/video/ dbof-3.pth nxvlad-2.pth --name dbof-3_nxvlad-2 --steps 9000 --ckpt-interval 3000 --offset 3 --lr 2e-4 --fcn-dim 2048 --drop 0.5 --fold 3 --se-reduction 4 --max-len 150 --batch-size 128
-SEED=28448 python -m yt8m.train_segment_w_context data/cache/video/ dbof-3.pth nxvlad-2.pth --name dbof-3_nxvlad-2 --steps 9000 --ckpt-interval 3000 --offset 3 --lr 2e-4 --fcn-dim 2048 --drop 0.5 --fold 4 --se-reduction 4 --max-len 150 --batch-size 128
-SEED=7498 python -m yt8m.train_segment_w_context data/cache/video/ nxvlad-2.pth nxvlad-2.pth --name nxvlad-2_nxvlad-2 --steps 15000 --ckpt-interval 5000 --offset 3 --lr 2e-4 --fcn-dim 2048 --drop 0.5 --fold 4 --se-reduction 4 --max-len 150 --batch-size 128
+SEED=4055 python -m yt8m.train_segment_w_context scripts/segment_with_context.yaml data/cache/video/dbof-3 data/cache/video/nextvlad-2 --fold 3 --name dbof-3_nextvlad-2 --steps 12000
+SEED=5055 python -m yt8m.train_segment_w_context scripts/segment_with_context.yaml data/cache/video/dbof-3 data/cache/video/nextvlad-2 --fold 4 --name dbof-3_nextvlad-2
+
+SEED=5455 python -m yt8m.train_segment_w_context scripts/segment_with_context.yaml data/cache/video/nextvlad-2 data/cache/video/nextvlad-2 --fold 5 --name nextvlad-2_x2
+SEED=3055 python -m yt8m.train_segment_w_context scripts/segment_with_context.yaml data/cache/video/dbof-3 data/cache/video/dbof-3 --fold 4 --name dbof-3_x2

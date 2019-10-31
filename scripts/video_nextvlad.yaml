@@ -1,0 +1,19 @@
+video:
+  model:
+    type: nextvlad
+    p_drop: 0.5
+    fcn_dim: 2048
+    groups: 16
+    max_len: 150
+    n_clusters: 64
+    n_mixtures: 4
+    per_class: false
+    se_reduction: 4
+    add_batchnorm: true
+  training:
+    batch_size: 48
+    steps: 200000
+    lr: 3e-4
+    eps: 1e-6
+    weight_decay: 0.1
+    ckpt_interval: 10000
