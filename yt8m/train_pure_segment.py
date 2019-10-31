@@ -183,7 +183,7 @@ def main():
         torch.optim.Adam(
             optimizer_grouped_parameters,
             lr=lr, eps=float(training_config["eps"])),
-        [training_config["weight_decay"], 0]
+        [float(training_config["weight_decay"]), 0]
     )
     # optimizer = torch.optim.Adam(
     #     optimizer_grouped_parameters, lr=lr, eps=1e-7)

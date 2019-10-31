@@ -8,7 +8,7 @@ segment_w_context:
     n_mixture: 4
   training:
     lr: 2e-4
-    batch_size: 64
+    batch_size: 128
     steps: 9000
     ckpt_interval: 3000
     offset: 3

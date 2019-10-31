@@ -1,0 +1,9 @@
+pure_segment:
+  training:
+    lr: 2e-4
+    batch_size: 128
+    steps: 8000
+    ckpt_interval: 4000
+    offset: 3
+    weight_decay: 0.02
+    eps: 1e-7

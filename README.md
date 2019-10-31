@@ -1,8 +1,26 @@
 # 7th place solution to The 3rd YouTube-8M Video Understanding Challenge
 
-(WIP) This is the final states of the codebase at the end of the competition. Code cleanup and documentation are under way.
+A brief model summary can be found [here](https://www.kaggle.com/c/youtube8m-2019/discussion/112349). Please refer to the [workshop paper](Lee2019.pdf) for more details.
 
-A brief model summary can be found [here](https://www.kaggle.com/c/youtube8m-2019/discussion/112349). A more detailed summary will be added later as a paper.
+## 20191031 Update
+
+- Redundant functions and classes have been removed.
+- Some minor refactor.
+- **Manage the models using YAML config files**: a YAML config file is used to specify the model architecture and training parameters. An exported model now consists of a YAML file and a pickled state dictionary.
+
+**Correction to the paper** (and potential bugs): During the code cleanup, I found out that at near the end of competition, I set `num_workers=1` for train data loader when training segment classifiers. In the paper I wrote that I used `num_workers>1` to add more randomness. That was a mistake. In fact, using `num_workers>1` caused some convergence issue when I tried to reproduce the result. There might be some undiscovered bugs in the data loader. Using only one worker, although slower, should reproduce the results correctly.
+
+### Model Reproduction
+
+I've manage to reproduce the results with the cleaned codebase and Docker image (using some of the the remaining GCP credit). Two base models and seven segment classifiers are enough to obtain the 7th place:
+
+![images](reproduction_results.png)
+
+Notes:
+
+1. Because the data loader is reshuffled after each resumption from instance preemption, the base model cannot be exactly reproduced. The base model performs slightly worse this time (in terms of local CV results), and it affected the downstream models.
+2. The Dockerized version seem to be slower. But your mileage may vary.
+3. The training scripts under `/scripts` folder has been updated.
 
 ## System Environment
 
@@ -99,7 +117,3 @@ The submission file will be create as `sub.csv` at the project root folder.
 ## Troubleshooting
 
 - **RuntimeError: received 0 items of ancdata**: [Increasing ulimit and file descriptors limit on Linux](https://glassonionblog.wordpress.com/2013/01/27/increase-ulimit-and-file-descriptors-limit/).
-
-## Potential Improvements
-
-1. **Config-file-based model creation**: currently the entire PyTorch model object is pickled into a file on disk. This is to avoid remembering the hyper-parameters when restoring models, and thus acclerate model iteration. However, it is not considered the best practice. Storing the hyper-parameters in a config file is a better solution. I'll have to do some research to find out how to implement this properly.
