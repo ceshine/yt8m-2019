@@ -14,7 +14,7 @@ A brief model summary can be found [here](https://www.kaggle.com/c/youtube8m-201
 
 I've manage to reproduce the results with the cleaned codebase and Docker image (using some of the the remaining GCP credit). Two base models and seven segment classifiers are enough to obtain the 7th place:
 
-![images](reproduction_results.png)
+![images](images/reproduction_results.png)
 
 Notes:
 
