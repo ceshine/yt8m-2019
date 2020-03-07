@@ -41,13 +41,15 @@ Highlights:
 
 Update: a Dockerfile and a public Docker images have been created for this project. Example usage:
 
-```
+```bash
 docker run --gpus all \
     -v /path/to/segment/dataset:/home/docker/src/data/segment \
-    -v /path/to/video/dataset:/home/docker/src/data/video \
+    -v /path/to/frame-level/video/dataset:/home/docker/src/data/video \
     --shm-size=1G -ti --name mycontainer \
     ceshine/yt8m-2019
 ```
+
+**WARNING: The "video dataset" here is not "Video-level dataset", but "Frame-level dataset" on the download page. See Folder Structure section for more details.**
 
 (Note: you need to install Docker and [NVIDIA/nvidia-docker](https://github.com/NVIDIA/nvidia-docker) first.)
 
@@ -57,7 +59,7 @@ docker run --gpus all \
   - segment — Put the data from [YouTube-8M segment-rated frame-level features dataset](https://research.google.com/youtube8m/download.html) here.
     - train
     - test
-  - video — Put the data from [YouTube-8M frame-level features dataset](https://research.google.com/youtube8m/download.html) here.
+  - video — Put the data from [YouTube-8M **frame-level** features dataset](https://research.google.com/youtube8m/download.html) here.
     - train
       - Please check [train_file_list.txt](data/video/train/train_file_list.txt) for the list of shards used.
     - valid
