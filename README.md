@@ -57,7 +57,7 @@ docker run --gpus all \
 
 - data
   - segment — Put the data from [YouTube-8M segment-rated frame-level features dataset](https://research.google.com/youtube8m/download.html) here.
-    - train
+    - train (please put the `validate` set here, as this dataset has no official training set.)
     - test
   - video — Put the data from [YouTube-8M **frame-level** features dataset](https://research.google.com/youtube8m/download.html) here.
     - train
