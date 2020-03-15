@@ -105,7 +105,7 @@ The training of context-aware models took 8 to 12 minutes per 1,000 steps on a T
 
 ## Reproduction Instructions
 
-1. pretraining: `bash scripts/pretraning.bash`
+1. pretraining: `bash scripts/pretraining.bash`
 2. finetuning context-agnostic models: `bash scripts/context-agnostic.bash`
 3. finetuning context-aware models: `bash scripts/context-aware.bash`
 4. prepare the metadata for the test set: `python -m yt8m.prepare_test_meta`
