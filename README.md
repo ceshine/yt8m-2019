@@ -2,6 +2,10 @@
 
 A brief model summary can be found [here](https://www.kaggle.com/c/youtube8m-2019/discussion/112349). Please refer to the [workshop paper](Lee2019.pdf) for more details.
 
+## 20201018 Update
+
+[Some of the trained model can be downloaded here](https://mega.nz/file/mR11UCgA#jMofx_P2L0WAReaNy8PwPkw40ByRyAvUNPyBJFIi7x8).
+
 ## 20191031 Update
 
 - Redundant functions and classes have been removed.
